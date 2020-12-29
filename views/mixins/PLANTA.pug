@@ -1,0 +1,61 @@
+form(action='abrir-orden' method='POST')
+  .row.mt-3
+    .col-sm-12
+      .card
+        h4.card-header.py-2.border-bottom-0 
+          .row.d-flex.justify-content-between.align-items-center.ml-1.text-uppercase
+            small ${data.ClientCarr[i].nombre_cliente}
+            a.btn.btn-success.btn-sm.rounded-pill(type='button')
+              i.fas.fa-phone
+          .row.d-flex.justify-content-start.ml-1.text-capitalize
+            cite.blockquote-footer.text-success(title="Source Title") ${data.ClientCarr[i].tipo_cliente}
+        .card-body
+          .row
+            .form-group.col-md-4
+              .row
+                .col-6
+                  label DNI: 
+                .col-6
+                  p.card-text(onclick="CopiarDNI(this)") ${data.ClientCarr[i].dni}
+            .form-group.col-md-4
+              .row
+                .col-6
+                  label E-mail: 
+                .col-6
+                  p.card-text ${data.ClientCarr[i].email}
+            .form-group.col-md-4
+              .row
+                .col-6
+                  label Telefono: 
+                .col-6
+                  p.card-text ${data.ClientCarr[i].telefono}
+          .row
+            .form-group.col-md-4
+              .row
+                .col-6
+                  label ruc: 
+                .col-6
+                  p.card-text ${data.ClientCarr[i].ruc}
+            .form-group.col-md-4
+              .row
+                .col-6
+                  label Razón Social: 
+                .col-6
+                  p.card-text ${data.ClientCarr[i].razon_social}
+          .row
+            .form-group.col-md-4
+              .row
+                .col-5
+                  label direccion: 
+                .col-7
+                  p.card-text ${data.ClientCarr[i].direccion}
+          .d-flex.justify-content-end
+            .btn.btn-primary.btn-sm.rounded(onclick= 'BotonActualizar('+i+')' type="button" data-toggle="modal" data-target="#modalEditUser")
+              i.far.fa-edit.fa-2x                          
+        .card-footer
+          .row
+            .col-12
+              input(type="hidden" name='id_usuario' )
+              input(type="hidden" name='id_vehiculo' )
+              input(type="hidden" name='id_tipo_cliente') 
+              button.btn.btn-success.btn-block.rounded-pill(type='submit') Crear Pedido

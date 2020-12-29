@@ -1,0 +1,80 @@
+mixin#modalNewUser.modal.fade(tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true")
+  .modal-lg.modal-dialog.modal-notify.modal-danger.rounded(role="document")
+    // Content
+    .modal-content
+      // Header
+      .modal-header.d-flex.justify-content-center
+        p.heading CREAR NUEVO USUARIO
+        button.close(type="button" data-dismiss="modal" aria-label="Close")
+          span.white-text(aria-hidden="true") ×
+      // Body
+      .modal-body
+        p3 Datos del Usuario
+        .container-fluid.px-0
+          .row.mt-2
+            .col-12
+              section.form-gradient
+                .md-form.mb-1.mt-0
+                  .d-flex.bd-highlight
+                    .flex-fill.bd-highlight
+                      input#tipo_cliente_send(type='hidden', autocomplete='off', name='tipo_cliente')
+                      i#ico_tipo_cliente.fas.fa-user-friends.prefix.mt-1
+                      input#tipo_cliente.form-control(type='text',autocomplete='off')
+                      label#lb_tipo_cliente(for='tipo_cliente') Tipo Cliente
+                    button#btn_tipo_cliente.m-auto.border.mb-2.rounded-right.bg-transparent(type="button")
+                      i.fas.fa-caret-down.m-2 
+            .col-12
+              section.form-gradient
+                .md-form.mb-1
+                  .d-flex.bd-highlight
+                    .flex-fill.bd-highlight
+                      i#iconombre.fas.fa-user.prefix.mt-1
+                      input#nombreCliente.form-control.orden(type='text', autocomplete='off',name='nombreCliente' required)
+                      label#lbnombre(for='nombreCliente') Usuario *
+            .col-12            
+              section.form-gradient
+                .md-form
+                  i#icotelefono.fas.fa-mobile-alt.prefix.mt-1
+                  input#telefono.form-control.orden(type='tel',name='telefono')
+                  label#lbtelefono(for='telefono') telefono               
+            .col-12
+              section.form-gradient
+                .md-form
+                  i#icoemail.fas.fa-at.prefix.mt-1
+                  input#email.form-control.orden(type='email',name='email')
+                  label#lbemail(for='email') email
+                  small#emailHelp.form-text.text-muted ejemplo@gmail.com
+            .col-12             
+              section.form-gradient
+                .md-form.mb-1
+                  .d-flex.bd-highlight
+                    .flex-fill.bd-highlight
+                      i#icodni.far.fa-id-card.prefix.mt-1
+                      input#dni.form-control.orden(type='number',name='dni' required)
+                      label#lbdni(for='dni') DNI *
+                    button#btn_dni.m-auto.rounded.border.bg-primary.border-primary.text-white(type="button") Buscar                      
+            .col-12
+              section.form-gradient
+                .md-form.mb-1
+                  .d-flex.bd-highlight
+                    .flex-fill.bd-highlight
+                      i#icoRuc.far.fa-id-card.prefix.mt-1
+                      input#ruc.form-control.orden(type='number',name='ruc' required)
+                      label#lbRuc(for='dni') RUC *
+                    button#btn_ruc.m-auto.rounded.border.bg-primary.border-primary.text-white(type="button") Buscar  
+            .col-12
+              section.form-gradient
+                .md-form
+                  i#icorazon_social.fas.fa-id-card-alt.prefix.mt-1
+                  input#razon_social.form-control.orden(type='text',name='razon_social')
+                  label#lbrazon_social(for='razon_social') Razon social
+            .col-12
+              section.form-gradient
+                .md-form
+                  i#icoDireccion.fas.fa-home.prefix.mt-1
+                  input#direccion.form-control.orden(type='text',name='direccion')
+                  label#lbDireccion(for='direccion') Direccion
+      .modal-footer.flex-end
+        button#btnLimpiar.btn.btn-outline-danger.waves-effect.rounded.rounded(type="button") Cancelar
+        button#btnCrear.btn.btn-danger.rounded.rounded(type="button") GUARDAR
+

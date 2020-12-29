@@ -1,11 +1,11 @@
 extends layouts/main.pug
 append head
-    // Librerias Awesomplate
-    link(rel='stylesheet', href='lib/lib_awesomplete/awesomplete.css')
-    script(src='/socket.io/socket.io.js')
+  // Librerias Awesomplate
+  link(rel='stylesheet', href='lib/lib_awesomplete/awesomplete.css')
+  script(src='/socket.io/socket.io.js')
 append area-librerias-scripts
-    // JavaScript de awesomplate 
-    script(src='lib/lib_awesomplete/awesomplete.js')
+  // JavaScript de awesomplate 
+  script(src='lib/lib_awesomplete/awesomplete.js')
 append styles
     style.
         /* Switch 1 Specific Styles Start */
@@ -91,43 +91,42 @@ block contenido
                         //-.ml-2
                         //-    label.mb-0.text-muted(for="Switch") Nuevo Vehiculo
                 .form-row
-                    .form.col-md-6                              
-                        section.form-gradient
-                            .md-form
-                                .d-flex.bd-highlight
-                                    .flex-fill.bd-highlight
-                                        i#ico_tipoVehiculo.fas.fa-car-side.prefix.mt-1
-                                        input#send_tipoVehiculo(type='hidden',autocomplete='off',name='tipoVehiculo')
-                                        input#id_tipoVehiculo.form-control(type='text',autocomplete='off',
-                                        name='tipoVehiculo')
-                                        datalist#mylist
-                                            option Camioneta
-                                            option pickup
-                                            option band
-                                            option 4x4
-                                        label#lb_tTipo Vehiculo
-                                    button.m-auto.border.mb-2.rounded-right.bg-transparent(type="button",disabled)
-                                        i.fas.fa-caret-down.m-2
-                    .form.col-md-6                              
+                  //.form.col-md-6                              
+                  //  section.form-gradient
+                  //    .md-form
+                  //      .d-flex.bd-highlight
+                  //        .flex-fill.bd-highlight
+                  //          i#ico_tipoVehiculo.fas.fa-car-side.prefix.mt-1
+                  //          input#send_tipoVehiculo(type='hidden',autocomplete='off',name='tipoVehiculo')
+                  //          input#id_tipoVehiculo.form-control(type='text',autocomplete='off',
+                  //          name='tipoVehiculo')
+                  //          datalist#mylist
+                  //            option Camioneta
+                  //            option pickup
+                  //            option band
+                  //            option 4x4
+                  //          label#lb_tTipo Vehiculo
+                  //        button.m-auto.border.mb-2.rounded-right.bg-transparent(type="button",disabled)
+                  //          i.fas.fa-caret-down.m-2                             
 
-                    .form.col-md-6
-                        section.form-gradient
-                            .md-form
-                                i#ico_marca.fas.fa-car-side.prefix.mt-1
-                                input#id_marca_send(type='hidden',autocomplete='off',name='idMarca')
-                                input#id_marca.form-control(type='text',autocomplete='off', name= 'Marca' required)
-                                label#lb_marca(for='id_marca') Vehiculo Marca
-                    .form.col-md-6                              
-                        section.form-gradient
-                            .md-form
-                                .d-flex.bd-highlight
-                                    .modelo.flex-fill.bd-highlight
-                                        i#ico_modelo.fas.fa-car-side.prefix.mt-1
-                                        input#id_modelo_send(type='hidden',autocomplete='off',name='idModelo')
-                                        input#id_modelo.form-control(type='text',autocomplete='off',name='modelo' required)
-                                        label#lb_modelo(for='id_modelo') Modelo
-                                    button#btn_modelo.m-auto.border.mb-2.rounded-right.bg-transparent(type="button",disabled)
-                                        i.fas.fa-caret-down.m-2
+                  .form.col-md-6
+                    section.form-gradient
+                      .md-form
+                        i#ico_marca.fas.fa-car-side.prefix.mt-1
+                        input#id_marca_send(type='hidden',autocomplete='off',name='idMarca')
+                        input#id_marca.form-control(type='text',autocomplete='off', name= 'Marca' required)
+                        label#lb_marca(for='id_marca') Marca
+                  .form.col-md-6                              
+                      section.form-gradient
+                          .md-form
+                              .d-flex.bd-highlight
+                                  .modelo.flex-fill.bd-highlight
+                                      i#ico_modelo.fas.fa-car-side.prefix.mt-1
+                                      input#id_modelo_send(type='hidden',autocomplete='off',name='idModelo')
+                                      input#id_modelo.form-control(type='text',autocomplete='off',name='modelo' required)
+                                      label#lb_modelo(for='id_modelo') Modelo
+                                  button#btn_modelo.m-auto.border.mb-2.rounded-right.bg-transparent(type="button",disabled)
+                                      i.fas.fa-caret-down.m-2
                 .form-row
                     .form.col-md-6
                         section.form-gradient
@@ -151,7 +150,7 @@ block contenido
                 //    small.text-info Porfavor ingrese datos correctos al formulario por que podria surgir un error
                 //p3.text-center Datos del Usuario
         .card.rounded-0
-            .card-header.text-center.alert-danger.value INGRESE INFORMACION DEL USUARIO
+            .card-header.text-center.alert-danger.value INGRESE INFORMACION DEL CLIENTE
             .card-body
                 //.text-center.alert-secondary.value.m-1.border
                 //    .p-2 INGRESE INFORMACION DEL USUARIO
@@ -167,8 +166,8 @@ block contenido
                                             input#busqueda_id_cliente(type='hidden',autocomplete='off',name='id_cliente')
                                             i#icon_busqueda.fas.fa-search.prefix.mt-1
                                             input#idBusqueda.form-control.orden(type='text')
-                                            label#lb_busqueda(for='idBusqueda') Buscar Usuario por DNI o Nombre
-                                            small#busquedahelp.form-text.text-info Verifique si el cliente existe (ESCRIBE NOMBRE O DNI O RAZON SOCIAL)
+                                            label#lb_busqueda(for='idBusqueda') Buscar Cliente por DNI, Nombre o Razon social
+                                            small#busquedahelp.form-text.text-info Verifique si el cliente existe (ESCRIBE NOMBRE, DNI O RAZON SOCIAL)
                         //.col-12.col-md-6
                         //    section.form-gradient
                         //        .md-form.mb-1.mt-0
@@ -180,7 +179,7 @@ block contenido
                         //                    label#lb_tipo_cliente(for='tipo_cliente') Tipo Usuario del vehiculo ej. "propietario" *
                         //                button#btn_tipo_cliente.m-auto.border.mb-2.rounded-right.bg-transparent(type="button")
                         //                    i.fas.fa-caret-down.m-2                    
-                .h6.mb-0.mt-4 Datos del Usuario
+                .h6.mb-0.mt-4 Datos del Cliente
                 .form-row
                     .col-12.col-md-6
                         section.form-gradient
@@ -300,6 +299,7 @@ block area-scripts
                             marca   = data.marca ,            
                             etiquetaInputMarca = $('#id_marca').get(0),
                             AWSPMarca = new Awesomplete(etiquetaInputMarca, { maxItems: 5,filter: Awesomplete.FILTER_STARTSWITH});
+                        const tipoVehiculo = data.TipoVehiculo;
                         let val_select_marca;
                     AWSPMarca.list = marca;
                     $('#id_marca').on('awesomplete-selectcomplete',function() {

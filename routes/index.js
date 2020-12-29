@@ -419,7 +419,7 @@ router.post('/nuevo-cliente', async (req, res) => {
   console.log("RESPUESTA DE LA BASE DE DATOS ", consultaPlacaExistente);
   console.log('Placabuscada', nuevaPlaca);
   console.log('RESPUESTA', existenciaPlaca);
-  if (existenciaPlaca != 0) {
+  if (existenciaPlaca !== 0) {
     req.flash('messages', 'Esa placa ya existe');
     res.redirect('/consultar');
   } else {
@@ -862,28 +862,52 @@ router.get('/detalle-pedido-facturacion', isLoggedIn, async (req, res) => {
   res.render('Detalle_Facturacion', { data: data });
 });
 
-router.get('/pdf', async (req, res) => {
+router.get('/pdf',async (req, res) => {
 
-  let imgSrc = `file:// ${process.cwd()}/public/img/logo-autolinea.jpg`;
-  imgSrc = path.normalize(imgSrc);
-  const result2 = `<img src='${imgSrc}' alt='logo Autolinea' /><div style='text-align: center;'>Author: Marc Bachmann</div>`;
+  let fecha_de_barras = await helpers.Fecha_barras();
 
-  console.log('La direccion de la imagen es:', imgSrc);
-  const options = {
-    format: 'A4',
-    orientation: 'portrait'
-  };
+  console.log('Esta es la fecha de  Barras', fecha_de_barras);
+  
+  let datos_orden = {
+    nro_orden:"000666",
+    fecha:"15/03/20"
+  }
 
-  pdf.create(result2, options).toFile('./Downloads/salida.pdf', (err, res) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(res);
-    }
+  let datos_cliente = {
+    nombre_cliente_razon_social:"Oliver Heldens",
+    dni_ruc:"78546952",
+    telefono:"985 632 512"
+  }
+
+  let datos_vehiculo = {
+    placa:"XYZ-123",
+    marca:"Bugatti",
+    modelo:"Veyron",
+    generacion:"generacion 2015",
+    color:"Blanco",
+    kilometrage:"322,322"
+  }
+
+  //var result = "<img src='" + imgSrc + "' alt='logo Autolinea' /><div style='text-align: center;'>Author: Marc Bachmann</div>";
+  //var result2 = `<img src='` + imgSrc + `' alt='logo Autolinea' /><div style='text-align: center;'>Author: Marc Bachmann</div>`;
+
+  //console.log('La direccion de la imagen es:',imgSrc);
+   var options = {
+      format: 'A4',
+      orientation: 'portrait'
+  }
+
+  let plantillaPDF = await helpers.Plantilla_Orden_pdf(datos_orden,datos_cliente,datos_vehiculo);
+  pdf.create(plantillaPDF,options).toFile('./Downloads/salida.pdf', function(err, res) {
+      if (err){
+          console.log(err);
+      } else {
+          console.log(res);
+      }
   });
-
+ 
   res.render('Download');
-});
+})
 
 router.post('/pdfd', async (req, res) => {
   const file = './Downloads/salida.pdf';

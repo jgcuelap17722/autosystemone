@@ -128,19 +128,17 @@ app.get('*', (_req, res) => {
 
 // === S O C K E T S ===
 
-Ejecucion_de_Cron = async (data, nDatos) => {
+const EjecucionCron = async (data, nDatos) => {
   // Crea la notificacion en el mismo instante
   // INCERTAR LA FECHA DE NOTIFICACION EN LA BASE DE DATOS
-  let fecha_Notificacion = helpers.new_Date(new Date()),
-    fecha_Notificacion_str = helpers.formatDateTime(fecha_Notificacion);
+  const NuevafechaNotificacion = helpers.new_Date(new Date());
+  const fechaNotificacionStr = helpers.formatDateTime(NuevafechaNotificacion);
 
-  // let query = 'UPDATE tseguimiento SET fecha_notificacion = "' + fecha_Notificacion_str + '" WHERE id_seguimiento = ' + data.id_seguimiento + ';';
-  let query = 'CALL SP_Get_Fecha_Notificacion("' + fecha_Notificacion_str + '",' + data.id_seguimiento + ')';
-  // await Consulta(query);
-  const Consulta_Fecha_Notificacion = await Consulta(query);
-  let fechaNotificacion = Consulta_Fecha_Notificacion[0][0].fecha_notificacion;
+  const query = `CALL SP_Get_Fecha_Notificacion("${fechaNotificacionStr}",${data.id_seguimiento})`;
+  const ConsultaFechaNotificacion = await Consulta(query);
+  const fechaNotificacion = ConsultaFechaNotificacion[0][0].fecha_notificacion;
 
-  let obj_Crear_Seguimiento = {
+  const objCrearSeguimiento = {
     nombre_cliente: data.nombre_cliente,
     dia: data.nombre_etapa_seguimineto,
     fecha_notificacion: helpers.timeago_int(fechaNotificacion),
@@ -148,70 +146,69 @@ Ejecucion_de_Cron = async (data, nDatos) => {
     id_seguimiento: data.id_seguimiento,
     id_cliente: data.id_cliente,
     id_vehiculo: data.id_vehiculo,
-    nro_seguimientos: nDatos
+    nroSeguimientos: nDatos
   };
-  console.log('OBJETO ARMADO=>', obj_Crear_Seguimiento);
-  io.emit('Crear_Notificaciones_Seguimiento', obj_Crear_Seguimiento);
+  console.log('OBJETO ARMADO=>', objCrearSeguimiento);
+  io.emit('Crear_Notificaciones_Seguimiento', objCrearSeguimiento);
 };
 // DESBILITE EL LLAMADO AUTOMATICO A ESTA FUNCION
 fauto = async () => {
-  const query_notificaciones_futuras = 'SELECT * FROM v_ids_detalle_seguimiento WHERE fecha_notificacion is null && id_estado_seguimiento <> 2 && id_etapa_seguimiento <> 4 && id_etapa_seguimiento <> 5 && id_etapa_seguimiento <> 6;';
-  const Notif_Futuras = await Consulta(query_notificaciones_futuras);
-  console.log('Notificaciones SEGUIMIENTO HOY', JSON.stringify(Notif_Futuras));
+  const queryNotificacionesFuturas = 'SELECT * FROM v_ids_detalle_seguimiento WHERE fecha_notificacion is null && id_estado_seguimiento <> 2 && id_etapa_seguimiento <> 4 && id_etapa_seguimiento <> 5 && id_etapa_seguimiento <> 6;';
+  const notificacionesFuturas = await Consulta(queryNotificacionesFuturas);
+  console.log('Notificaciones SEGUIMIENTO HOY', JSON.stringify(notificacionesFuturas));
   // ARMANDO MI FECHA
-  let My_Fecha_Actual = helpers.new_Date(new Date());
-  let Mi_anio = My_Fecha_Actual.getFullYear();
-  let Mi_fecha = My_Fecha_Actual.getDate();  // 1 - 31
-  let Mi_mes = My_Fecha_Actual.getMonth() + 1; // 0 - 11
-  let Mi_fecha_String = '' + Mi_fecha + '/' + Mi_mes + '/' + Mi_anio + '';
-  let nro_seguimientos = Notif_Futuras.length;
+  const miFechaActual = helpers.new_Date(new Date());
+  const miAnio = miFechaActual.getFullYear();
+  const miFecha = miFechaActual.getDate(); // 1 - 31
+  const miMes = miFechaActual.getMonth() + 1; // 0 - 11
+  const miFechaString = `${miFecha}/${miMes}/${miAnio}`;
+  const nroSeguimientos = notificacionesFuturas.length;
 
-  for (let j = 0; j <= Notif_Futuras.length - 1; j++) {
+  for (let j = 0; j <= notificacionesFuturas.length - 1; j++) {
     console.log('INICIO*******************************************************************************');
     // SABER EN QUE ETAPA ESTA LA NOTIFICACION QUE LLEGARÁ 1 2 3
     console.log('El contador es: ', j);
     // ARMAR EL OBJETO PARA ENVIARLO
-    let data_seguimiento = {
-      id_etapa_seguimiento: Notif_Futuras[j].id_etapa_seguimiento,
-      nombre_cliente: Notif_Futuras[j].nombre_cliente,
-      fecha_salida: Notif_Futuras[j].fecha_salida,
-      fecha_notificacion: Notif_Futuras[j].fecha_notificacion,
-      fecha_seguimiento: Notif_Futuras[j].fecha_seguimiento,
-      id_detallePedido: Notif_Futuras[j].id_detallePedido,
-      nombre_etapa_seguimineto: Notif_Futuras[j].nombre_etapa_seguimineto,
-      id_seguimiento: Notif_Futuras[j].id_seguimiento,
-      id_cliente: Notif_Futuras[j].id_cliente,
-      id_vehiculo: Notif_Futuras[j].id_vehiculo
+    const dataSeguimiento = {
+      id_etapa_seguimiento: notificacionesFuturas[j].id_etapa_seguimiento,
+      nombre_cliente: notificacionesFuturas[j].nombre_cliente,
+      fecha_salida: notificacionesFuturas[j].fecha_salida,
+      fecha_notificacion: notificacionesFuturas[j].fecha_notificacion,
+      fecha_seguimiento: notificacionesFuturas[j].fecha_seguimiento,
+      id_detallePedido: notificacionesFuturas[j].id_detallePedido,
+      nombre_etapa_seguimineto: notificacionesFuturas[j].nombre_etapa_seguimineto,
+      id_seguimiento: notificacionesFuturas[j].id_seguimiento,
+      id_cliente: notificacionesFuturas[j].id_cliente,
+      id_vehiculo: notificacionesFuturas[j].id_vehiculo
     };
 
-    console.log('OBKETO_NUEVOd:', data_seguimiento);
+    console.log('OBKETO_NUEVOd:', dataSeguimiento);
 
-    switch (data_seguimiento.id_etapa_seguimiento) {
-      case 1:
+    switch (dataSeguimiento.id_etapa_seguimiento) {
+      case 1: {
+        const fechaCron1 = dataSeguimiento.fecha_salida;
+        fechaCron1.setDate(fechaCron1.getDate() + 1);
+        fechaCron1.setHours(9);
+        fechaCron1.setMinutes(0);
+        fechaCron1.setSeconds(0);
 
-        let fecha_cron_1 = data_seguimiento.fecha_salida;
-        fecha_cron_1.setDate(fecha_cron_1.getDate() + 1);
-        fecha_cron_1.setHours(9);
-        fecha_cron_1.setMinutes(0);
-        fecha_cron_1.setSeconds(0);
+        const miAnioCron1 = fechaCron1.getFullYear();
+        const miFechaCron1 = fechaCron1.getDate();  // 1 - 31
+        const miMesCron1 = fechaCron1.getMonth() + 1; // 0 - 11
 
-        let Mi_anio_cron_1 = fecha_cron_1.getFullYear();
-        let Mi_fecha_cron_1 = fecha_cron_1.getDate();  // 1 - 31
-        let Mi_mes_cron_1 = fecha_cron_1.getMonth() + 1; // 0 - 11
+        const miFechaCron1String = `${miFechaCron1}/${miMesCron1}/${miAnioCron1}`;
 
-        let Mi_fecha_cron_1_String = '' + Mi_fecha_cron_1 + '/' + Mi_mes_cron_1 + '/' + Mi_anio_cron_1 + '';
-
-        console.log('Nueva fecha Cron_1 es ==', helpers.formatDateTime(fecha_cron_1));
-        console.log('Mi fecha', My_Fecha_Actual, ' >= ', fecha_cron_1);
-        if (My_Fecha_Actual >= fecha_cron_1) {
+        console.log('Nueva fecha Cron_1 es ==', helpers.formatDateTime(fechaCron1));
+        console.log('Mi fecha', miFechaActual, ' >= ', fechaCron1);
+        if (miFechaActual >= fechaCron1) {
           console.log('Si');
-          Ejecucion_de_Cron(data_seguimiento, nro_seguimientos);
-        } else if (Mi_fecha_String == Mi_fecha_cron_1_String) {
+          EjecucionCron(dataSeguimiento, nroSeguimientos);
+        } else if (miFechaString === miFechaCron1String) {
           new CronJob({
-            cronTime: fecha_cron_1,
+            cronTime: fechaCron1,
             onTick: CronFunction = () => {
-              console.log('EJECUCION____Cron ID_', data_seguimiento.id_seguimiento);
-              Ejecucion_de_Cron(data_seguimiento, nro_seguimientos);
+              console.log('EJECUCION____Cron ID_', dataSeguimiento.id_seguimiento);
+              EjecucionCron(dataSeguimiento, nroSeguimientos);
             },
             start: true,
             timeZone: 'America/Lima'
@@ -223,32 +220,33 @@ fauto = async () => {
         // j++
         console.log('CASE_1_DESPUES', j);
         break;
-      case 2:
-        const query_ultimo_seguimiento_2 = 'CALL SP_ULTIMO_REGISTRO_SEGUIMIENTO(' + data_seguimiento.id_vehiculo + ')';
-        const consulta_ultimo_seguimiento_2 = await Consulta(query_ultimo_seguimiento_2);
-        console.log('Ultimo seguimiento de Vehiculo_2', consulta_ultimo_seguimiento_2[0][0]);
+      }
+      case 2: {
+        const queryUltimoSeguimiento2 = `CALL SP_ULTIMO_REGISTRO_SEGUIMIENTO(${dataSeguimiento.id_vehiculo})`;
+        const consultaUltimoSeguimiento2 = await Consulta(queryUltimoSeguimiento2);
+        console.log('Ultimo seguimiento de Vehiculo_2', consultaUltimoSeguimiento2[0][0]);
 
-        let fecha_cron_2 = consulta_ultimo_seguimiento_2[0][0].fecha_seguimiento;
-        fecha_cron_2.setDate(fecha_cron_2.getDate() + 7);
-        fecha_cron_2.setHours(14); // por que 14 horas? (es por que a esa hora en america latima es 9 am)
-        fecha_cron_2.setMinutes(0);
-        fecha_cron_2.setSeconds(0);
-        console.log('Nueva fecha Cron_2 es ==', helpers.formatDateTime(fecha_cron_2));
+        const fechaCron2 = consultaUltimoSeguimiento2[0][0].fecha_seguimiento;
+        fechaCron2.setDate(fechaCron2.getDate() + 7);
+        fechaCron2.setHours(14); // 14 horas? (es por que a esa hora en america latima es 9 am)
+        fechaCron2.setMinutes(0);
+        fechaCron2.setSeconds(0);
+        console.log('Nueva fecha Cron_2 es ==', helpers.formatDateTime(fechaCron2));
 
-        let Mi_anio_cron_2 = fecha_cron_2.getFullYear();
-        let Mi_fecha_cron_2 = fecha_cron_2.getDate();  // 1 - 31
-        let Mi_mes_cron_2 = fecha_cron_2.getMonth() + 1; // 0 - 11
+        const miAnioCron2 = fechaCron2.getFullYear();
+        const miFechaCron2 = fechaCron2.getDate(); // 1 - 31
+        const miMesCron2 = fechaCron2.getMonth() + 1; // 0 - 11
 
-        let Mi_fecha_cron_2_String = '' + Mi_fecha_cron_2 + '/' + Mi_mes_cron_2 + '/' + Mi_anio_cron_2 + '';
+        const miFechaCron2String = `${miFechaCron2}/${miMesCron2}/${miAnioCron2}`;
 
-        if (My_Fecha_Actual >= fecha_cron_2) {
-          Ejecucion_de_Cron(data_seguimiento, nro_seguimientos);
-        } else if (Mi_fecha_String == Mi_fecha_cron_2_String) {
+        if (miFechaActual >= fechaCron2) {
+          EjecucionCron(dataSeguimiento, nroSeguimientos);
+        } else if (miFechaString == miFechaCron2String) {
           new CronJob({
-            cronTime: fecha_cron_2,
+            cronTime: fechaCron2,
             onTick: CronFunction = () => {
-              console.log('EJECUCION____Cron ID_', data_seguimiento.id_seguimiento);
-              Ejecucion_de_Cron(data_seguimiento, nro_seguimientos);
+              console.log('EJECUCION____Cron ID_', dataSeguimiento.id_seguimiento);
+              EjecucionCron(dataSeguimiento, nroSeguimientos);
             },
             start: true,
             timeZone: 'America/Lima'
@@ -260,36 +258,36 @@ fauto = async () => {
         // j++
         console.log('CASE_2_DESPUES', j);
         break;
+      }
+      case 3: {
+        const queryUltimoSeguimiento3 = `CALL SP_ULTIMO_REGISTRO_SEGUIMIENTO(${dataSeguimiento.id_vehiculo})`;
+        const consultaUltimoSeguimiento3 = await Consulta(queryUltimoSeguimiento3);
+        console.log('Ultimo seguimiento de Vehiculo_3', consultaUltimoSeguimiento3[0]);
 
-      case 3:
-        const query_ultimo_seguimiento_3 = 'CALL SP_ULTIMO_REGISTRO_SEGUIMIENTO(' + data_seguimiento.id_vehiculo + ')';
-        const consulta_ultimo_seguimiento_3 = await Consulta(query_ultimo_seguimiento_3);
-        console.log('Ultimo seguimiento de Vehiculo_3', consulta_ultimo_seguimiento_3[0]);
+        const fechaCron3 = consultaUltimoSeguimiento3[0][0].fecha_seguimiento;
+        fechaCron3.setDate(fechaCron3.getDate() + 30);
+        // fechaCron3.setMonth(fechaCron3.getMonth());
+        // fechaCron3.setFullYear(consultaUltimoSeguimiento3[0][0].fecha_seguimiento.getFullYear());
+        fechaCron3.setHours(14); // 14 horas? (es por que a esa hora en america latima es 9 am)
+        fechaCron3.setMinutes(0);
+        fechaCron3.setSeconds(0);
+        console.log('Nueva fecha Cron_3 es ==', helpers.formatDateTime(fechaCron3));
 
-        let fecha_cron_3 = consulta_ultimo_seguimiento_3[0][0].fecha_seguimiento;
-        fecha_cron_3.setDate(fecha_cron_3.getDate() + 30);
-        // fecha_cron_3.setMonth(fecha_cron_3.getMonth());
-        // fecha_cron_3.setFullYear(consulta_ultimo_seguimiento_3[0][0].fecha_seguimiento.getFullYear());
-        fecha_cron_3.setHours(14); // por que 14 horas? (es por que a esa hora en america latima es 9 am)
-        fecha_cron_3.setMinutes(0);
-        fecha_cron_3.setSeconds(0);
-        console.log('Nueva fecha Cron_3 es ==', helpers.formatDateTime(fecha_cron_3));
+        const miAnioCron3 = fechaCron3.getFullYear();
+        const miFechaCron3 = fechaCron3.getDate(); // 1 - 31
+        const miMesCron3 = fechaCron3.getMonth() + 1; // 0 - 11
 
-        let Mi_anio_cron_3 = fecha_cron_3.getFullYear();
-        let Mi_fecha_cron_3 = fecha_cron_3.getDate();  // 1 - 31
-        let Mi_mes_cron_3 = fecha_cron_3.getMonth() + 1; // 0 - 11
+        const miFechaCron3String = `${miFechaCron3}/${miMesCron3}/${miAnioCron3}`;
+        console.log('Hora de llegada pactada', miFechaCron3String);
 
-        let Mi_fecha_cron_3_String = '' + Mi_fecha_cron_3 + '/' + Mi_mes_cron_3 + '/' + Mi_anio_cron_3 + '';
-        console.log('Hora de llegada pactada', Mi_fecha_cron_3_String);
-
-        if (My_Fecha_Actual >= fecha_cron_3) {
-          Ejecucion_de_Cron(data_seguimiento, nro_seguimientos);
-        } else if (Mi_fecha_String == Mi_fecha_cron_3_String) {
+        if (miFechaActual >= fechaCron3) {
+          EjecucionCron(dataSeguimiento, nroSeguimientos);
+        } else if (miFechaString === miFechaCron3String) {
           new CronJob({
-            cronTime: fecha_cron_3,
+            cronTime: fechaCron3,
             onTick: CronFunction = () => {
-              console.log('EJECUCION____Cron ID_', data_seguimiento.id_seguimiento);
-              Ejecucion_de_Cron(data_seguimiento, nro_seguimientos);
+              console.log('EJECUCION____Cron ID_', dataSeguimiento.id_seguimiento);
+              EjecucionCron(dataSeguimiento, nroSeguimientos);
             },
             start: true,
             timeZone: 'America/Lima'
@@ -301,14 +299,16 @@ fauto = async () => {
         // j++
         console.log('CASE_3_DESPUES', j);
         break;
-      /*         default:
-                break; */
+      }
+      default: {
+        break;
+      }
     }
     console.log('FIN*******************************************************************************');
     console.log('El contador j es: ', j);
   }
 
-  console.log('Esta es mi fecha', My_Fecha_Actual);
+  console.log('Esta es mi fecha', miFechaActual);
 };
 
 io.on('connection', (sk_nuevoCliente) => {
@@ -353,7 +353,8 @@ io.on('connection', (sk_nuevoCliente) => {
     const data = {
       tipo_cliente,
       nombre_cliente,
-      telefono, email,
+      telefono,
+      email,
       dni,
       ruc,
       razon_social,
@@ -366,34 +367,35 @@ io.on('connection', (sk_nuevoCliente) => {
 
   // SOCKES PARA CONSULTAS DE APIS
   sk_nuevoCliente.on('solicitar_info_dni', async (pDni) => {
-    let query_consulta_dni = 'SELECT id_cliente FROM tcliente where dni="' + pDni + '";';
-    if (pDni != 0){
+    const queryConsultaDni = `SELECT id_cliente FROM tcliente where dni="${pDni}";`;
+    if (pDni !== 0) {
       if (pDni.toString().length < 8) {
-        pDni          = pDni.toString().padStart(8, '0');
+        pDni = pDni.toString().padStart(8, '0'); // LLENAR CON CEROS
         console.log("BUSCAR DNI EN LA BD");
-        let consulta_dni = await Consulta(query_consulta_dni);
-        console.log("BUSCANDO DNI/",pDni,"RESPUESTA/",consulta_dni);
-        if(consulta_dni.length != 0){ // SI ENCONTRAMOS EL CLIENTE EN LA BD
-          consulta_dni = consulta_dni[0];
-          sk_nuevoCliente.emit('recuperar_info_dni_db', consulta_dni);
-        }else{ // NO ENCONTRAMOS EL CLIENTE EN LA BD
-          let data = await helpers.Consulta_Dni(pDni);
+        const consultaDni = await Consulta(queryConsultaDni);
+        console.log("BUSCANDO DNI/", pDni, "RESPUESTA/", consultaDni);
+        if (consultaDni.length !== 0) { // SI ENCONTRAMOS EL CLIENTE EN LA BD
+          const idClienteBuscado = consultaDni[0];
+          sk_nuevoCliente.emit('recuperar_info_dni_db', idClienteBuscado);
+        } else { // NO ENCONTRAMOS EL CLIENTE EN LA BD
+          const data = await helpers.Consulta_Dni(pDni);
           sk_nuevoCliente.emit('recuperar_info_dni_online', data);
         }
-      }else{
+      } else {
         console.log("BUSCAR DNI EN LA BD");
-        let consulta_dni = await Consulta(query_consulta_dni);
-        console.log("BUSCANDO DNI/",pDni,"RESPUESTA/",consulta_dni);
-        if(consulta_dni.length != 0){ // SI ENCONTRAMOS EL CLIENTE EN LA BD
-          consulta_dni = consulta_dni[0];
-          sk_nuevoCliente.emit('recuperar_info_dni_db', consulta_dni);
-        }else{ // NO ENCONTRAMOS EL CLIENTE EN LA BD
-          let data = await helpers.Consulta_Dni(pDni);
+        const consultaDni = await Consulta(queryConsultaDni);
+        console.log("BUSCANDO DNI/", pDni, "RESPUESTA/", consultaDni);
+        if (consultaDni.length !== 0) { // SI ENCONTRAMOS EL CLIENTE EN LA BD
+          const idClienteBuscado = consultaDni[0];
+          console.log('ENCONTRADO EN LA BD NUEVO', );
+          sk_nuevoCliente.emit('recuperar_info_dni_db', idClienteBuscado);
+        } else { // NO ENCONTRAMOS EL CLIENTE EN LA BD
+          const data = await helpers.Consulta_Dni(pDni);
           sk_nuevoCliente.emit('recuperar_info_dni_online', data);
         }
       }
       // return helpers.Consulta_Dni_Aux(pDni)
-    }else{
+    } else {
       console.log("ERROR EL DNI ES 0");
       let data = await helpers.Consulta_Dni(pDni);
       sk_nuevoCliente.emit('recuperar_info_dni_online', data);
@@ -429,29 +431,29 @@ io.on('connection', (sk_nuevoCliente) => {
 // INCERTAR UN NUEVO NOMBRE DE  SERVICIO
 io.on('connection', (sk_CrearOrden) => {
   sk_CrearOrden.on('Crear_Servicio', async (Data) => {
-    let d_hoy = {
+    const dHoy = {
       d_date:helpers.new_Date(new Date()),
       d_str:helpers.formatDateTime(helpers.new_Date(new Date()))
     };
     console.log(Data);
-    await coneccion.query('CALL SP_Crear_Servicio("' + Data.Nombre + '","' + Data.id + '","'+d_hoy.d_str+'");');
-    let Servicio_Agregado = await coneccion.query('CALL SP_Recuperar_Servicio_Agregado("' + Data.id + '")');
-    const NewService = Servicio_Agregado[0][0];
+    await coneccion.query(`CALL SP_Crear_Servicio("${Data.Nombre}","${Data.id}","${dHoy.d_str}");`);
+    const servicioAgregado = await coneccion.query(`CALL SP_Recuperar_Servicio_Agregado("${Data.id}")`);
+    const NewService = servicioAgregado[0][0];
     sk_CrearOrden.emit('Servicio_agregado', NewService);
   });
 
   // SOCKET UTILIZADO ACUALIAR ACCION DE MECANICO A 3
   // CON UN SOCKET LISTANDO LOS NUEVOS MECANICOS DESOCUPADOS
   sk_CrearOrden.on('Asignar_Mecanico', async (data) => {
-    const query_asignar_mecanico = 'UPDATE tusuario SET nro_ordenes = nro_ordenes + 1 WHERE (id_usuario = ' + data + ');';
+    const queryAsignarMecanico = `UPDATE tusuario SET nro_ordenes = nro_ordenes + 1 WHERE (id_usuario = ${data});`;
 
-    const query_Mecanicos_Habilitados = 'SELECT id_usuario,nombre,apellido_paterno,nro_ordenes FROM v_mecanicos_hablilitados;';
+    const queryMecanicosHabilitados = 'SELECT id_usuario,nombre,apellido_paterno,nro_ordenes FROM v_mecanicos_hablilitados;';
 
-    await coneccion.query(query_asignar_mecanico);
+    await coneccion.query(queryAsignarMecanico);
 
-    let Mecanicos_Habilitados = await coneccion.query(query_Mecanicos_Habilitados);
+    const mecanicosHabilitados = await coneccion.query(queryMecanicosHabilitados);
     // LISTAR LOS MEANICOS DESOCUPADOS
-    io.emit('Mecanico_Asignado', Mecanicos_Habilitados); // => crearOrden
+    io.emit('Mecanico_Asignado', mecanicosHabilitados); // => crearOrden
   });
 });
 
@@ -460,7 +462,7 @@ io.on('connection', (sk_Navigation) => {
 
   // Este es un pinche tubo que registra la asignacion y envia esa notificacion
   sk_Navigation.on('Enviar_Notificacion', async (data_idUsuario_receptor, data_idUsuario_emisor, pNoroOrden) => {
-    let d_hoy = {
+    let dHoy = {
       d_date:helpers.new_Date(new Date()),
       d_str:helpers.formatDateTime(helpers.new_Date(new Date()))
     };
@@ -484,7 +486,7 @@ io.on('connection', (sk_Navigation) => {
     // (Fn_Enviar_Notificacion) esta funcion inserta en tnotificaciones un user_emisor y user_receptor
 
     // despues recupera el id de la notificacion agregada.
-    let query_id_notificacion = 'CALL SP_FN_Enviar_Notificacion(' + data_idUsuario_emisor + ',' + data_idUsuario_receptor + ',"'+d_hoy.d_str+'")';
+    let query_id_notificacion = 'CALL SP_FN_Enviar_Notificacion(' + data_idUsuario_emisor + ',' + data_idUsuario_receptor + ',"'+dHoy.d_str+'")';
     const consulta_id_Notificacion = await Consulta(query_id_notificacion);
     const { id_Notificacion } = consulta_id_Notificacion[0][0];
 
@@ -525,7 +527,7 @@ io.on('connection', (sk_Navigation) => {
     pNoroOrden,
     pId_Detalle_Pedido,
     pIdNotificacion) => {
-    const d_hoy = {
+    const dHoy = {
       d_date:helpers.new_Date(new Date()),
       d_str:helpers.formatDateTime(helpers.new_Date(new Date()))
     };
@@ -559,7 +561,7 @@ io.on('connection', (sk_Navigation) => {
     console.log('data_idUsuario_emisor', data_idUsuario_emisor);
 
     // RECUPERAR EL ID DE NOTIFICACION VINCULADA A ESTE EMISOR(MECANICO) Y RECEPTOR(CAJA)
-    let query_id_notificacion = 'CALL SP_FN_Enviar_Notificacion(' + data_idUsuario_emisor + ',' + data_idUsuario_receptor + ',"'+d_hoy.d_str+'")';
+    let query_id_notificacion = 'CALL SP_FN_Enviar_Notificacion(' + data_idUsuario_emisor + ',' + data_idUsuario_receptor + ',"'+dHoy.d_str+'")';
     const consulta_id_Notificacion = await coneccion.query(query_id_notificacion);
     const { id_Notificacion } = consulta_id_Notificacion[0][0];
 
@@ -735,14 +737,14 @@ io.on('connection', (sk_Navigation) => {
   sk_Navigation.on('Registrar_Seguimiento', async (data) => {
     try {
       // helpers.Notificacion_dia_1();
-      const query_notificaciones_futuras = `SELECT * FROM v_ids_detalle_seguimiento 
+      const queryNotificacionesFuturas = `SELECT * FROM v_ids_detalle_seguimiento 
       WHERE fecha_notificacion is not null && id_estado_seguimiento <> 2 
       && id_etapa_seguimiento <> 4
       && id_etapa_seguimiento <> 5
       && id_etapa_seguimiento <> 6
       ORDER BY fecha_notificacion`;
-      const Notif_Futuras = await Consulta(query_notificaciones_futuras);
-      let nro_seguimientos = Notif_Futuras.length+1;
+      const notificacionesFuturas = await Consulta(queryNotificacionesFuturas);
+      let nroSeguimientos = notificacionesFuturas.length+1;
        // SUMO +1 POR QUE CUANDO EL CRON SE EJECUTE LOS SEGUIMIENTOS DEVE SUMAR +1
       console.log('informacion entrante', data);
       let { id_detalle_pedido, id_cliente, id_vehiculo } = data;
@@ -763,14 +765,14 @@ io.on('connection', (sk_Navigation) => {
       console.log('Info de este_seguimiento_', consulta_info_este_seguimiento[0][0]);
 
       // ARMANDO MI FECHA (Para compararla)
-      let My_Fecha_Actual = helpers.new_Date(new Date()),
-        Mi_anio = My_Fecha_Actual.getFullYear(),
-        Mi_fecha = My_Fecha_Actual.getDate(),  // 1 - 31
-        Mi_mes = My_Fecha_Actual.getMonth() + 1, // 0 - 11
-        Mi_fecha_String = '' + Mi_fecha + '/' + Mi_mes + '/' + Mi_anio + '';
+      let miFechaActual = helpers.new_Date(new Date()),
+        miAnio = miFechaActual.getFullYear(),
+        miFecha = miFechaActual.getDate(),  // 1 - 31
+        miMes = miFechaActual.getMonth() + 1, // 0 - 11
+        miFechaString = '' + miFecha + '/' + miMes + '/' + miAnio + '';
 
       // ARMAR EL OBJETO (Para crear la notificacion)
-      let data_seguimiento = {
+      let dataSeguimiento = {
         id_etapa_seguimiento,
         nombre_cliente,
         fecha_salida,
@@ -783,36 +785,36 @@ io.on('connection', (sk_Navigation) => {
         id_vehiculo
       } = info_este_seguimiento;
 
-      switch (data_seguimiento.id_etapa_seguimiento) {
+      switch (dataSeguimiento.id_etapa_seguimiento) {
         case 1:
 
-          let fecha_cron_1 = data_seguimiento.fecha_salida;
-          fecha_cron_1.setDate(fecha_cron_1.getDate()+1);
-          fecha_cron_1.setHours(14); // por que 14 horas? (es por que a esa hora en america latima es 9 am)
-          fecha_cron_1.setMinutes(0);
-          fecha_cron_1.setSeconds(0);
+          let fechaCron1 = dataSeguimiento.fecha_salida;
+          fechaCron1.setDate(fechaCron1.getDate()+1);
+          fechaCron1.setHours(14); // por que 14 horas? (es por que a esa hora en america latima es 9 am)
+          fechaCron1.setMinutes(0);
+          fechaCron1.setSeconds(0);
 
-          let Mi_anio_cron_1 = fecha_cron_1.getFullYear();
-          let Mi_fecha_cron_1 = fecha_cron_1.getDate();  // 1 - 31
-          let Mi_mes_cron_1 = fecha_cron_1.getMonth() + 1; // 0 - 11
+          let miAnioCron1 = fechaCron1.getFullYear();
+          let miFechaCron1 = fechaCron1.getDate();  // 1 - 31
+          let miMesCron1 = fechaCron1.getMonth() + 1; // 0 - 11
 
-          let Mi_fecha_cron_1_String = '' + Mi_fecha_cron_1 + '/' + Mi_mes_cron_1 + '/' + Mi_anio_cron_1 + '';
+          let miFechaCron1String = '' + miFechaCron1 + '/' + miMesCron1 + '/' + miAnioCron1 + '';
 
-          console.log('Nueva fecha Cron_1 es ==', helpers.formatDateTime(fecha_cron_1));
+          console.log('Nueva fecha Cron_1 es ==', helpers.formatDateTime(fechaCron1));
 
-          // if (Mi_fecha_String == Mi_fecha_cron_1_String) {
+          // if (miFechaString == miFechaCron1String) {
 
             new CronJob({
-              cronTime: fecha_cron_1,
+              cronTime: fechaCron1,
               onTick: CronFunction = () => {
-                console.log('EJECUCION____Cron ID_', data_seguimiento.id_seguimiento);
-                Ejecucion_de_Cron(data_seguimiento, nro_seguimientos);
+                console.log('EJECUCION____Cron ID_', dataSeguimiento.id_seguimiento);
+                EjecucionCron(dataSeguimiento, nroSeguimientos);
               },
               start: true,
               timeZone: 'America/Lima'
             });
           // } else {
-            const mensage_salida = `* * * * * * * * * * * * * * * *\nNuevo Cron con id: ` + data_seguimiento.id_seguimiento + `\nDe estado: ` + data_seguimiento.nombre_etapa_seguimineto + `\nFue programado para esta fecha: ` + helpers.formatDate(fecha_cron_1) + `\n* * * * * * * * * * * * * * * *`;
+            const mensage_salida = `* * * * * * * * * * * * * * * *\nNuevo Cron con id: ` + dataSeguimiento.id_seguimiento + `\nDe estado: ` + dataSeguimiento.nombre_etapa_seguimineto + `\nFue programado para esta fecha: ` + helpers.formatDate(fechaCron1) + `\n* * * * * * * * * * * * * * * *`;
             console.log(mensage_salida);
 
           // }
@@ -871,10 +873,10 @@ io.on('connection', (sk_Navigation) => {
     const consulta_notificaciones_seguimiento = await Consulta(query_notificaciones_seguimiento);
     console.log('por recarga numero de seguimientos = ', consulta_notificaciones_seguimiento.length);
 
-    let data_seguimiento = [], i = 0, nro_seguimientos = consulta_notificaciones_seguimiento.length;
+    let dataSeguimiento = [], i = 0, nroSeguimientos = consulta_notificaciones_seguimiento.length;
 
     consulta_notificaciones_seguimiento.forEach(element => {
-      data_seguimiento[i] = {
+      dataSeguimiento[i] = {
         id_seguimiento: element.id_seguimiento,
         id_detalle_pedido: element.id_detallePedido,
         nombre_cliente: element.nombre_cliente,
@@ -885,8 +887,8 @@ io.on('connection', (sk_Navigation) => {
       };
       i++;
     });
-    console.log('Salida del array data_seguimiento (Tamaño)', data_seguimiento.length);
-    sk_Navigation.emit('Emitir_Notificaciones_Seguimineto', data_seguimiento, nro_seguimientos);
+    console.log('Salida del array dataSeguimiento (Tamaño)', dataSeguimiento.length);
+    sk_Navigation.emit('Emitir_Notificaciones_Seguimineto', dataSeguimiento, nroSeguimientos);
   });
 });
 
@@ -904,18 +906,45 @@ io.on('connection', (sk_Navigation) => {
 io.on('connection', (sk_InfoCliente) => {
   sk_InfoCliente.on('Registrar_Ususario', async (Data) => {
     try {
-      let d_hoy = {
-        d_date:helpers.new_Date(new Date()),
-        d_str:helpers.formatDateTime(helpers.new_Date(new Date()))
+      const dHoy = {
+        d_date: helpers.new_Date(new Date()),
+        d_str: helpers.formatDateTime(helpers.new_Date(new Date()))
       };
       // const id_person = req.user;
-      if (Data.val_arr[1] != 0) {
-        const { nombre_cliente, telefono, email, dni, ruc, razon_social, direccion, val_arr, val_id_Vehiculo, id_persona } = Data;
+      if (Data.val_arr[1] !== 0) {
+        const {
+        val_id_Vehiculo,
+        idCliente,
+        nombre_cliente,
+        telefono,
+        email,
+        dni,
+        ruc,
+        razonSocial,
+        direccion,
+        val_arr,
+        id_persona,
+        saveOrEdit
+        } = Data;
         const tipo_cliente = val_arr[0];
         // incertar nuevo tipo cliente
-        const query_1 = 'CALL SP_ADD_New_Client(' + val_id_Vehiculo + ',\
-          '+ null + ',"' + tipo_cliente + '","' + nombre_cliente + '","' + telefono + '","' + email + '",' + dni + ',' + ruc + ',"' + razon_social + '","' + direccion + '",\
-          '+ id_persona + ',' + 1 + ',"'+d_hoy.d_str+'")';
+        const query_1 = `CALL SP_ADD_New_Clientx3(
+          ${val_id_Vehiculo},
+          ${idCliente},
+          ${null},
+          "${tipo_cliente}",
+          "${nombre_cliente}",
+          "${telefono}",
+          "${email}",
+          ${dni},
+          ${ruc},
+          "${razonSocial}",
+          "${direccion}",
+          ${id_persona},
+          ${1},
+          "${dHoy.d_str}",
+          ${saveOrEdit})`;
+        console.log(query_1);
         await coneccion.query(query_1, (err, rows) => {
           if (!err && rows[0].length > 0) {
             console.log('rows', rows);
@@ -924,15 +953,40 @@ io.on('connection', (sk_InfoCliente) => {
             console.error(err.message);
           }
         });
-
         console.log('query_1', query_1);
       } else {
-        const { nombre_cliente, telefono, email, dni, ruc, razon_social, direccion, val_arr, val_id_Vehiculo } = Data;
+        const {
+          val_id_Vehiculo,
+          idCliente,
+          nombre_cliente,
+          telefono,
+          email,
+          dni,
+          ruc,
+          razonSocial,
+          direccion,
+          val_arr,
+          saveOrEdit
+          } = Data;
         const id_tipo_cliente = val_arr[0];
-        // incertar nuevo tipo cliente
-        const query_2 = 'CALL SP_ADD_New_Client(' + val_id_Vehiculo + ',\
-          '+ id_tipo_cliente + ',"' + null + '","' + nombre_cliente + '","' + telefono + '","' + email + '",' + dni + ',' + ruc + ',"' + razon_social + '","' + direccion + '",\
-          '+ null + ',' + 0 + ',"'+d_hoy.d_str+'")';
+        // USAR TIPO CLIENTE
+        const query_2 = `CALL SP_ADD_New_Clientx3(
+          ${val_id_Vehiculo},
+          ${idCliente},
+          ${id_tipo_cliente},
+          "${null}",
+          "${nombre_cliente}",
+          "${telefono}",
+          "${email}",
+          ${dni},
+          ${ruc},
+          "${razonSocial}",
+          "${direccion}",
+          ${null},
+          ${0},
+          "${dHoy.d_str}",
+          ${saveOrEdit})`;
+        console.log(query_2);
         await coneccion.query(query_2, (err, rows) => {
           if (!err && rows[0].length > 0) {
             console.log('rows', rows);

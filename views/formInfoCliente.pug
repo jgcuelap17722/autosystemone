@@ -46,25 +46,35 @@ append styles
 prepend area-scripts
   script.
     $(document).ready(() => {
-      var sk_InfoCliente = io();
+      const sk_InfoCliente = io();
+      const sk_nuevoCliente = io();
+
+      let saveOrEdit = false;
+
+      let updateUser = {
+        nombreCliente : '',
+      }
+
       // === === === AWESOMPLETE === === ===
       // Autocompletado ==> TIPO-CLIENTE
       // - variables 
-        const data_Tipo_cliente     = !{JSON.stringify(data)}, //Recuperar las marcas de autos de las rutas ¡¡
-          id_Tipo_cliente         = data_Tipo_cliente.Tipos_Cliente.idTipo_cliente,               // indice y marca recuperada
-          Tipo_cliente            = data_Tipo_cliente.Tipos_Cliente.Tipo_cliente,
-          val_id_Vehiculo         = data_Tipo_cliente.ClientCarr[0].id_vehiculo,
-          id_persona              = data_Tipo_cliente.InfoUser.id_usuario,    
-          etiquetaInputTipoCliente = $('#tipo_cliente').get(0),
-          AWSPTipoCliente = new Awesomplete(etiquetaInputTipoCliente, { sort : false,maxItems: 5,filter: Awesomplete.FILTER_STARTSWITH});
-        console.log('Tipo_cliente',Tipo_cliente)
-        console.log('Tipo_cliente',Tipo_cliente)
-        AWSPTipoCliente.list = Tipo_cliente;
-        $('#tipo_cliente').on('awesomplete-selectcomplete',function() {
-          let i = Tipo_cliente.indexOf(this.value);
-          console.log("id de Tipo_cliente",id_Tipo_cliente[i]); //Ver id seleccionado de marca
-          //$('#tipo_cliente_send').val(id_Tipo_cliente[i]);
-        });
+      const data                     = !{JSON.stringify(data)} //Recuperar las marcas de autos de las rutas ¡¡
+      let ClientCarr               = data.ClientCarr;
+      const id_Tipo_cliente          = data.Tipos_Cliente.idTipo_cliente // indice y marca
+      const Tipo_cliente             = data.Tipos_Cliente.Tipo_cliente
+      const val_id_Vehiculo          = data.ClientCarr[0].id_vehiculo
+      const id_persona               = data.InfoUser.id_usuario    
+      const etiquetaInputTipoCliente = $('#tipo_cliente').get(0)
+      let idCliente = null;
+      const AWSPTipoCliente = new Awesomplete(etiquetaInputTipoCliente, { sort : false,maxItems: 5,filter: Awesomplete.FILTER_STARTSWITH});
+      console.log('Tipo_cliente',Tipo_cliente)
+      console.log('Tipo_cliente',Tipo_cliente)
+      AWSPTipoCliente.list = Tipo_cliente;
+      $('#tipo_cliente').on('awesomplete-selectcomplete',function() {
+        let i = Tipo_cliente.indexOf(this.value);
+        console.log("id de Tipo_cliente",id_Tipo_cliente[i]); //Ver id seleccionado de marca
+        //$('#tipo_cliente_send').val(id_Tipo_cliente[i]);
+      });
       // === === ESTILOS === ===
         $('#dtHistorialCliente').DataTable({
           "scrollX": true,
@@ -144,7 +154,112 @@ prepend area-scripts
           return (array.indexOf(valor) > -1);
         }
 
-        Crear_Nombre_Orden = (Data) => {
+        Crear_Nombre_Orden = (Data, pIdVehiculo, i) => {
+          $('#PanelClientes').append(
+            `<form action="abrir-orden" method="POST">
+            <div class="row mt-3">
+              <div class="col-sm-12">
+                <div class="card">
+                  <h4 class="card-header py-2 border-bottom-0"> 
+                    <div class="row d-flex justify-content-between align-items-center ml-1 text-uppercase">
+                    <small>${Data.nombre_cliente}</small>
+                    <a class="btn btn-success btn-sm rounded-pill" type="button" href="tel:${Data.telefono}">
+                      <i class="fas fa-phone"></i>
+                    </a>
+                    </div>
+                    <div class="row d-flex justify-content-start ml-1 text-capitalize">
+                      <cite class="blockquote-footer text-success" title="Source Title">${Data.tipo_cliente}</cite>
+                    </div>
+                  </h4>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="form-group col-md-4">
+                        <div class="row">
+                          <div class="col-6">
+                            <label>DNI: </label>
+                          </div>
+                          <div class="col-6">
+                            <p class="card-text" onclick="CopiarDNI(this)">${Data.dni}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group col-md-4">
+                        <div class="row">
+                          <div class="col-6">
+                            <label>E-mail: </label>
+                          </div>
+                          <div class="col-6">
+                            <p class="card-text">${Data.email}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group col-md-4">
+                        <div class="row">
+                          <div class="col-6">
+                            <label>Telefono: </label>
+                          </div>
+                          <div class="col-6">
+                            <p class="card-text">${Data.telefono}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="form-group col-md-4">
+                        <div class="row">
+                          <div class="col-6">
+                            <label>ruc: </label>
+                          </div>
+                          <div class="col-6">
+                            <p class="card-text">${Data.ruc}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group col-md-4">
+                        <div class="row">
+                          <div class="col-6">
+                            <label>Razón Social: </label>
+                          </div>
+                          <div class="col-6">
+                            <p class="card-text">${Data.razon_social}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="form-group col-md-4">
+                        <div class="row">
+                          <div class="col-5">
+                            <label>direccion: </label>
+                          </div>
+                          <div class="col-7">
+                            <p class="card-text">${Data.direccion}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                      <div class="btn btn-primary btn-sm rounded" onclick="BotonActualizar(${i})" type="button" data-toggle="modal" data-target="#modalEditUser">
+                      <i class="far fa-edit fa-2x"></i></div>
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <div class="row">
+                      <div class="col-12">
+                        <input type="hidden" name="id_usuario" value="${Data.id_cliente}"/>
+                        <input type="hidden" name="id_vehiculo" value="${pIdVehiculo}"/>
+                        <input type="hidden" name="id_tipo_cliente" value="${Data.id_tipo_cliente}"/>
+                        <button class="btn btn-success btn-block rounded-pill" type="submit">Crear Pedido</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>`
+          )
+        }
+        Crear_Nombre_Orden2 = (Data) => {
           $('#agregado').prepend('<form action="abrir-orden" method="POST">\
             <div class="row mt-3">\
               <div class="col-sm-12">\
@@ -178,7 +293,7 @@ prepend area-scripts
                     <div class="row">\
                       <div class="form-group col-md-5">\
                         <div class="row">\
-                          <div class="col-6"><label>RUC:</label></div>\
+                          <div class="col-6"><label>ruc:</label></div>\
                           <div class="col-6">\
                             <p class="card-text">'+Data.DataUser.ruc+'</p>\
                           </div>\
@@ -186,7 +301,7 @@ prepend area-scripts
                       </div>\
                       <div class="form-group col-md-5">\
                         <div class="row">\
-                          <div class="col-5"><label>Direccion:</label></div>\
+                          <div class="col-5"><label>direccion:</label></div>\
                           <div class="col-7">\
                             <p class="card-text">'+Data.DataUser.direccion+'</p>\
                           </div>\
@@ -207,10 +322,10 @@ prepend area-scripts
             </div>\
           </form>'); 
       }
-        Limpiar_Modal_Form = (Estado)=>{
+        Limpiar_Modal_Form = (Estado) => {
           $('#tipo_cliente').val('')
           $('#lb_tipo_cliente').removeClass("active")
-          $('#nombre').val('')
+          $('#nombreCliente').val('')
           $('#lbnombre').removeClass("active")
           $('#telefono').val('')
           $('#lbtelefono').removeClass("active")
@@ -218,12 +333,14 @@ prepend area-scripts
           $('#lbemail').removeClass("active")
           $('#dni').val('')
           $('#lbdni').removeClass("active")
-          $('#RUC').val('')
-          $('#lbRUC').removeClass("active")
-          $('#Direccion').val('')
+          $('#ruc').val('')
+          $('#lbRuc').removeClass("active")
+          $('#razon_social').val('')
+          $('#lbrazon_social').removeClass("active")
+          $('#direccion').val('')
           $('#lbDireccion').removeClass("active")
 
-          $('#modalPush').modal(Estado)
+          $('#modalEditUser').modal(Estado)
         }
 
         Validacion_Campos = (array) => {
@@ -239,7 +356,7 @@ prepend area-scripts
           if(contador != array.length){return false}else{return true}
           }
         
-        Copiar = (element) => {
+        CopiarDNI = (element) => {
           //creamos un input que nos ayudara a guardar el texto temporalmente
           var $temp = $("<input>");
           //lo agregamos a nuestro body
@@ -294,60 +411,329 @@ prepend area-scripts
               Estilo_input_AWSP(lb_tipo_cliente,'','#4f4f4f','');
             }
         });
-      // BOTON REGISTRAR
-        $('#btnCrear').click(() => {
-          let nombre_cliente    = $('#nombre').val(),
-            telefono  = $('#telefono').val(),
-            email     = $('#email').val(),
-            dni       = $('#dni').val(),
-            ruc       = $('#RUC').val(),
-            direccion = $('#Direccion').val();
-          let val_tipo_cliente = $('#tipo_cliente').val();
-        let Campos = [val_tipo_cliente,nombre_cliente]
-        if(Validacion_Campos(Campos)){
+      // BOTON NUEVO USUARIO
+        $('#btnNuevoUsuario').click(() => {
+          Limpiar_Modal_Form('show');
+          saveOrEdit = true;
+          idCliente = null;
+          const titleModal = `CREAR USUARIO PARA EL VEHICULO`;
+          const titleMarcaModeloModal = `(${ClientCarr[0].vehiculo_marca} - ${ClientCarr[0].modelo})`;
+          const titleButtonCreate = 'GUARDAR';
+          $('#titleModal').text(titleModal);
+          
+          // ESTILOS BTN CREAR
+          $('#btnCrear').text(titleButtonCreate);
+          $('#btnCrear').removeClass("btn-primary");
+          $('#btnCrear').addClass("btn-danger");
 
-          let tipo_persona = Busqueda_en_Array(val_tipo_cliente,Tipo_cliente),
-            val_arr = [];
+          // ESTILOS BTN LIMPIAR
+          $('#btnLimpiar').removeClass("btn-outline-primary");
+          $('#btnLimpiar').addClass("btn-outline-danger");
+
+          // ESTILOS BTN CANCELAR
+          $('#btnCancelar').removeClass("btn-outline-primary");
+          $('#btnCancelar').addClass("btn-outline-danger");
+
+          $('#titleMarcaModeloModal').text(titleMarcaModeloModal);
+          $('#barModal').removeClass("modal-primary");
+          $('#barModal').addClass("modal-danger");
+          $('#icoModal').removeClass();
+          $('#icoModal').addClass("fas fa-user-plus fa-2x text-white");
+
+          console.log('Mi id cliente es', idCliente);
+          console.log('ESTADO DE ACTUALIZACION', saveOrEdit);
+        });
+      
+      // BOTON ACTUALIZAR USUARIO
+      BotonEliminarCliente = (i) => {
+
+      }
+
+      // BOTON ACTUALIZAR USUARIO
+      BotonActualizar = (i) => {
+        Limpiar_Modal_Form('show');
+        console.log('ClientCarr es', ClientCarr);
+        saveOrEdit = false;
+        idCliente = ClientCarr[i].id_cliente;
+        console.log('Mi id cliente es', idCliente);
+        console.log('ESTADO DE ACTUALIZACION', saveOrEdit);
+        const titleModal = `ACTUALIZAR USUARIO DEL VEHICULO`;
+        const titleMarcaModeloModal = `(${ClientCarr[0].vehiculo_marca} - ${ClientCarr[0].modelo})`;
+        const titleButtonCreate = 'ACTUALIZAR';
+        $('#titleModal').text(titleModal);
+        
+        // ESTILOS BTN
+        $('#btnCrear').text(titleButtonCreate);
+        $('#btnCrear').removeClass("btn-danger");
+        $('#btnCrear').addClass("btn-primary");
+
+        // ESTILOS BTN LIMPIAR
+        $('#btnLimpiar').removeClass("btn-outline-danger");
+        $('#btnLimpiar').addClass("btn-outline-primary");
+
+        // ESTILOS BTN CANCELAR
+        $('#btnCancelar').removeClass("btn-outline-danger");
+        $('#btnCancelar').addClass("btn-outline-primary");
+
+        $('#titleMarcaModeloModal').text(titleMarcaModeloModal);
+        $('#barModal').removeClass("modal-danger");
+        $('#barModal').addClass("modal-primary");
+        $('#icoModal').removeClass();
+        $('#icoModal').addClass("fas fa-edit fa-2x text-white");
+        
+        $('#lb_tipo_cliente').addClass("active");
+        $('#tipo_cliente').val(ClientCarr[i].tipo_cliente);
+
+        $('#lbdni').addClass("active");
+        $('#dni').val(ClientCarr[i].dni);
+
+        $('#lbnombre').addClass("active");
+        $('#nombreCliente').val(ClientCarr[i].nombre_cliente);
+
+        if (ClientCarr[i].telefono != '') {
+          $('#lbtelefono').addClass("active");
+          $('#telefono').val(ClientCarr[i].telefono);
+        }
+        
+        if (ClientCarr[i].email != '') {
+          $('#lbemail').addClass("active");
+          $('#email').val(ClientCarr[i].email);
+        }
+        
+        if (ClientCarr[i].ruc != '') {
+          $('#lbRuc').addClass("active");
+          $('#ruc').val(ClientCarr[i].ruc);
+        }
+        
+        if (ClientCarr[i].razon_social != '' && ClientCarr[i].razon_social != null) {
+          $('#lbrazon_social').addClass("active");
+          $('#razon_social').val(ClientCarr[i].razon_social);
+        }
+        
+        if (ClientCarr[i].direccion != '') {
+          $('#lbDireccion').addClass("active");
+          $('#direccion').val(ClientCarr[i].direccion);
+        }
+      }
+      $('.actualizar').click(() => {
+        // RECUPERAR LOS DATOS DEL CLIENTE
+
+        //$('#nombreCliente').val('JOSE');
+        //$('#telefono').val(123);
+        //$('#email').val('JGCUELAP');
+        //$('#dni').val(123456);
+        //$('#razon_social').val('ZICIAL');
+        //$('#direccion').val('AV PERU');
+        console.log('Valor de dni', $('#dniText').val());
+        saveOrEdit = false;
+        console.log('ESTADO DE ACTUALIZACION', saveOrEdit);
+      });
+      // BOTON REGISTRAR
+      $('#btnCrear').click(() => {
+        const nombre_cliente   = $('#nombreCliente').val();
+        const telefono         = $('#telefono').val();
+        const email            = $('#email').val();
+        const dni              = parseInt($('#dni').val(), 10);
+        const razonSocial      = $('#razon_social').val();
+        const direccion        = $('#direccion').val();
+        const val_tipo_cliente = $('#tipo_cliente').val();
+        const numeroRuc        = parseInt($('#ruc').val(), 10);
+        const ruc              = (isNaN(numeroRuc) ? 0 : numeroRuc);
+        const Campos           = [val_tipo_cliente, nombre_cliente];
+
+        if(Validacion_Campos(Campos)) {
+          const existenciaDeTipoCliente = Busqueda_en_Array(val_tipo_cliente, Tipo_cliente);
+          let val_arr = [];
             //Puede enviar los datos nuevos del cliente 
             // con val tipo existente e Inexistentes
-          if(!tipo_persona){ // si agregamos
-            // envia el texto escribido para incertar en tabla tipo persona
-            val_arr = [val_tipo_cliente,1]; // si agregamos 1
+          if(!existenciaDeTipoCliente) { // si agregamos nuevo tipo cliente
+            val_arr = [val_tipo_cliente, 1]; // si agregamos 1
             $('#tipo_cliente_send').val(val_arr); // sale un valor diferente
 
-          }else{ // no agregamos
+          } else { // no agregamos
             // envia el indice del tipo persona
             let i = Tipo_cliente.indexOf(val_tipo_cliente);
             console.log('seleccionado:',id_Tipo_cliente[i],'valor:',val_tipo_cliente)
-            val_arr = [id_Tipo_cliente[i],0]; // no agregamos 0
+            val_arr = [id_Tipo_cliente[i], 0]; // no agregamos 0
             $('#tipo_cliente_send').val(val_arr);
           }
-          const NewUser = {nombre_cliente,telefono,email,dni,ruc,razon_social,direccion,val_arr,val_id_Vehiculo,id_persona}
-          sk_InfoCliente.emit('Registrar_Ususario',NewUser);
-          console.log('NewUser Envio',NewUser);
+          const NewUser = {
+          val_id_Vehiculo,
+          idCliente,
+          nombre_cliente,
+          telefono,
+          email,
+          dni,
+          ruc,
+          razonSocial,
+          direccion,
+          val_arr,
+          id_persona,
+          saveOrEdit
+          }
+          sk_InfoCliente.emit('Registrar_Ususario', NewUser);
+          console.log('NewUser Envio', NewUser);
+          console.log('ESTADO ', saveOrEdit);
 
           Limpiar_Modal_Form('toggle');
-        }else{
+        } else {
           alert('Hay Uno o mas campos vacios')
         }
       });
       // BOTON LIMPIAR
-        $('#btnLimpiar').click(() =>{Limpiar_Modal_Form('show');});
+      $('#btnLimpiar').click(() => {
+        Limpiar_Modal_Form('show');
+      });
+      //BOTON BUSCAR_DNI (CLICK)
+        $('#btn_dni').click(() => {
+          const dni = $('#dni').val();
+          const validarCeroVacio = [(dni == 0 ? "" : dni)];
+
+          if (Validacion_Campos(validarCeroVacio)) {
+            $('#nombreCliente').val('Cargando espere...');
+            $('#lbnombre').addClass("active");
+            $('#iconombre').removeClass("active");
+            sk_nuevoCliente.emit('solicitar_info_dni', validarCeroVacio);
+          } else {
+            alert('El dni no puede estar VACIO');
+          }
+        });
+      //BOTON BUSCAR_RUC (CLICK)
+        $('#btn_ruc').click(() => {
+          const ruc = $('#ruc').val();
+          $('#razon_social').val('Cargando espere...');
+          $('#lbrazon_social').addClass("active");
+          $('#icorazon_social').removeClass("active");
+
+          $('#direccion').val('Cargando espere...');
+          $('#lbDireccion').addClass("active");
+          $('#icoDireccion').removeClass("active");
+
+          sk_nuevoCliente.emit('solicitar_info_ruc', ruc)
+        });
+      // BOTON ACTUALIZAR
+        $('#btnActualizar').click(() => {
+          alert('actualizó')
+        })
       // === SOCKETS === ===
-      sk_InfoCliente.on('Nuevo_Cliente',(data) =>{
+      sk_InfoCliente.on('Nuevo_Cliente', (data) =>{
         try{
-
-          const DataUser = {id_cliente,id_tipo_cliente,tipo_cliente,nombre_cliente,telefono,email,dni,ruc,razon_social,direccion} = data[0];
-
-          const NewUser = {DataUser,val_id_Vehiculo}
-          console.log('NewUser Recivido',NewUser)
-            console.log(DataUser);
-          Crear_Nombre_Orden(NewUser);
+          const DataUser = {
+            id_cliente,
+            id_tipo_cliente,
+            tipo_cliente,
+            nombre_cliente,
+            telefono,
+            email,
+            dni,
+            ruc,
+            razonSocial,
+            direccion
+          } = data[0];
+          // const NewUser = {data, val_id_Vehiculo}
+          console.log('NewUser Recivido', data)
+          ClientCarr = data;
+          $('#PanelClientes').children('form').remove();
+          for (let index = 0; index < data.length; index++) {
+            Crear_Nombre_Orden(data[index], val_id_Vehiculo, index);
+          }
+          // Crear_Nombre_Orden(NewUser);
         }catch(error){
           console.log(error)
         }
       });
+      // Recibir apis de dni e Rucf
+      sk_nuevoCliente.on('recuperar_info_dni_online', (data) => {
+          console.log('Salida dni', data);
+          if(data != 'DESCONECCION'){
+              if(data != 'An error has occurred.'){
+                  $('#lbnombre').addClass("active");
+                  $('#iconombre').addClass("active");
+                  $('#nombreCliente').val(data);
+                        // caso todo bien
+              }else{
+                  $('#nombreCliente').val('');
+                  $('#lbnombre').removeClass("active");
+                  $('#iconombre').removeClass("active");
+                  alert("DNI Incorrecto")                        // caso que no encuentre el DNI
+              }  
+          }else{
+              $('#lbnombre').removeClass("active");
+              $('#iconombre').removeClass("active");
+              $('#nombreCliente').val('');
+              alert('No hay coneccion a internet')    // caso Sin internet :'(
+          }
+      });
+      // Recibir apis de dni e Ruc
+      sk_nuevoCliente.on('recuperar_info_dni_db', (data) => {
+        console.log("busqueda por dni",data);
+        $('#busqueda_id_cliente').val(data.id_cliente)
+        sk_nuevoCliente.emit('data_cliente',data.id_cliente)
+      });
+      sk_nuevoCliente.on('recuperar_info_ruc',(data) => {
+        if(data != 'DESCONECCION RUC'){
+          $('#lbrazon_social').addClass("active");
+          $('#icorazon_social').addClass("active");
+          $('#razon_social').val(data.razon_social);     // caso todo bien
 
+          $('#lbDireccion').addClass("active");
+          $('#icoDireccion').addClass("active");
+          $('#direccion').val(data.domicilio_fiscal);     // caso todo bien
+        }else{
+          $('#lbrazon_social').removeClass("active");
+          $('#icorazon_social').removeClass("active");
+          $('#razon_social').val('');     
+
+          $('#lbDireccion').removeClass("active");
+          $('#icoDireccion').removeClass("active");
+          $('#direccion').val('');     
+          alert('No hay coneccion a internet o ruc invalido')    // caso Sin internet :'(
+        }
+      });
+      sk_nuevoCliente.on('data_info_cliente', data =>{
+        //$('#tipo_cliente').val(data.tipo_cliente);
+        //$('#lb_tipo_cliente').addClass("active");
+        //$('#ico_tipo_cliente').addClass("active");
+        //$('#tipo_cliente').attr('readonly','readonly');
+        //$('#btn_tipo_cliente').prop('disabled',true),
+
+        $('#nombreCliente').val(data.nombre_cliente);
+        $('#lbnombre').addClass("active");
+        $('#iconombre').addClass("active");
+        $('#nombreCliente').attr('readonly','readonly');
+
+        $('#telefono').val(data.telefono);
+        $('#lbtelefono').addClass("active");
+        $('#icotelefono').addClass("active");
+        $('#telefono').attr('readonly','readonly');
+
+        $('#email').val(data.email);
+        $('#lbemail').addClass("active");
+        $('#icoemail').addClass("active");
+        $('#email').attr('readonly','readonly');
+
+        $('#dni').val(data.dni);
+        $('#lbdni').addClass("active");
+        $('#icodni').addClass("active");
+        $('#dni').attr('readonly','readonly');
+        $('#btn_dni').prop('disabled',true);
+        
+        $('#ruc').val(data.ruc);
+        $('#lbRuc').addClass("active");
+        $('#icoRuc').addClass("active");
+        $('#ruc').attr('readonly','readonly');
+        $('#btn_ruc').prop('disabled',true);
+
+        $('#razon_social').val(data.razon_social);
+        $('#lbrazon_social').addClass("active");
+        $('#icorazon_social').addClass("active");
+        $('#razon_social').attr('readonly','readonly');
+
+        $('#direccion').val(data.direccion);
+        $('#lbDireccion').addClass("active");
+        $('#icoDireccion').addClass("active");
+        $('#direccion').attr('readonly','readonly');
+      });
     });
 append message
 block contenido
@@ -364,82 +750,12 @@ block contenido
         // Button trigger modal
         if data.InfoUser.id_tipo_usuario == 2
           .d-flex.justify-content-center
-            button.btn.btn-danger.rounded-pill.btn-sm(type="button" data-toggle="modal" data-target="#modalPush")
-              i.fas.fa-plus-circle
-              |   Agregar nuevo Usuario
-        // Modal: modalPush
-        #modalPush.modal.fade(tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true")
-          .modal-dialog.modal-notify.modal-danger.rounded(role="document")
-            // Content
-            .modal-content
-              // Header
-              .modal-header.d-flex.justify-content-center
-                p.heading Crear un Nuevo Usuario !
-                button.close(type="button" data-dismiss="modal" aria-label="Close")
-                  span.white-text(aria-hidden="true") ×
-              // Body
-              .modal-body
-                p3 Datos del Usuario
-                .container-fluid.px-0
-                  .row.mt-2
-                    .col-12
-                      section.form-gradient
-                        .md-form.mb-1.mt-0
-                          .d-flex.bd-highlight
-                            .flex-fill.bd-highlight
-                              input#tipo_cliente_send(type='hidden',autocomplete='off',name='tipo_cliente')
-                              i#ico_tipo_cliente.fas.fa-user-friends.prefix.mt-1
-                              input#tipo_cliente.form-control(type='text',autocomplete='off')
-                              label#lb_tipo_cliente(for='tipo_cliente') Tipo Cliente
-                            button#btn_tipo_cliente.m-auto.border.mb-2.rounded-right.bg-transparent(type="button")
-                              i.fas.fa-caret-down.m-2 
-                    .col-12
-                      section.form-gradient
-                        .md-form
-                          i#iconombre.fas.fa-user.prefix.mt-1
-                          input#nombre.form-control.orden(type='text', autocomplete='off',name='nombre')
-                          label#lbnombre(for='nombre') Usuario
-                    .col-12            
-                      section.form-gradient
-                        .md-form
-                          i#icotelefono.fas.fa-mobile-alt.prefix.mt-1
-                          input#telefono.form-control.orden(type='tel',name='telefono')
-                          label#lbtelefono(for='telefono') telefono               
-                    .col-12
-                      section.form-gradient
-                        .md-form
-                          i#icoemail.fas.fa-at.prefix.mt-1
-                          input#email.form-control.orden(type='email',name='email')
-                          label#lbemail(for='email') email
-                          small#emailHelp.form-text.text-muted ejemplo@gmail.com
-                    .col-12             
-                      section.form-gradient
-                        .md-form
-                          i#icodni.far.fa-id-card.prefix.mt-1
-                          input#dni.form-control.orden(type='number',name='dni')
-                          label#lbdni(for='dni') DNI
-                    .col-12
-                      section.form-gradient
-                        .md-form
-                          i#icoRUC.fas.fa-id-card-alt.prefix.mt-1
-                          input#RUC.form-control.orden(type='number',name='ruc')
-                          label#lbRUC(for='RUC') RUC
-                    .col-12
-                      section.form-gradient
-                        .md-form
-                          i#icorazon_social.fas.fa-id-card-alt.prefix.mt-1
-                          input#razon_social.form-control.orden(type='text',name='razon_social')
-                          label#lbrazon_social(for='razon_social') Razon social
-                    .col-12
-                      section.form-gradient
-                        .md-form
-                          i#icoDireccion.fas.fa-home.prefix.mt-1
-                          input#Direccion.form-control.orden(type='text',name='direccion')
-                          label#lbDireccion(for='Direccion') Direccion
-              .modal-footer.flex-center
-                button#btnCrear.btn.btn-danger.rounded.rounded-pill(type="button") Registrar
-                button#btnLimpiar.btn.btn-outline-danger.waves-effect.rounded.rounded-pill(type="button") Limpiar
-        // Modal: modalPush
+            #btnNuevoUsuario.btn.btn-success.rounded-pill(type="button" data-toggle="modal" data-target="#modalEditUser")
+              i.fas.fa-plus-circle.pr-1
+              | Agregar nuevo Usuario
+        // Modal: modalEditUser
+        include mixins/FormAgregarEditarCliente
+        include mixins/FormDeleteCliente
         //- NAVEGADOR
         ul.nav.nav-tabs(role='tablist')
           li.nav-item
@@ -448,74 +764,77 @@ block contenido
             a#car-tab.nav-link(data-toggle='tab', href='#car', role='tab', aria-controls='car', aria-selected='false') Automovil
           //-li.nav-item
           //-  a#history-tab.nav-link(data-toggle='tab', href='#history', role='tab', aria-controls='history', aria-selected='false') Historial
-
         .tab-content
           //- iNFO DEL CLIENTE
           #client.tab-pane.fade.show.active(role='tabpanel', aria-labelledby='client-tab')
             #agregado.agregado
-            - for (let i = 0; i < data.nResultados; ++i) {
-              form(action='abrir-orden' method='POST')
-                .row.mt-3
-                  .col-sm-12
-                    .card
-                      h4.card-header.d-flex.justify-content-between.py-2.border-bottom-0 
-                        .row.justify-content-center.align-items-center.ml-1.text-capitalize
-                          //small #{data.ClientCarr[i].nombre_cliente} #{data.ClientCarr[i].id_cliente} #{data.ClientCarr[i].tipo_cliente} #{data.ClientCarr[i].id_vehiculo}
-                          small.text-muted #{data.ClientCarr[i].nombre_cliente}
-                          small.text-success.ml-1 #{data.ClientCarr[i].tipo_cliente}
-                        a.btn.btn-success.btn-sm.rounded-pill(type='button' href='tel:'+data.ClientCarr[i].telefono+'')
-                          i.fas.fa-phone
-                      .card-body
-                        .row
-                          .form-group.col-md-4
-                            .row
-                              .col-6
-                                label DNI: 
-                              .col-6
-                                p.card-text(onclick="Copiar(this)") #{data.ClientCarr[i].dni}
-                          .form-group.col-md-4
-                            .row
-                              .col-6
-                                label E-mail: 
-                              .col-6
-                                p.card-text #{data.ClientCarr[i].email}
-                          .form-group.col-md-4
-                            .row
-                              .col-6
-                                label Telefono: 
-                              .col-6
-                                p.card-text #{data.ClientCarr[i].telefono}
-                        .row
-                          .form-group.col-md-4
-                            .row
-                              .col-6
-                                label RUC: 
-                              .col-6
-                                p.card-text #{data.ClientCarr[i].ruc}
-                          .form-group.col-md-4
-                            .row
-                              .col-6
-                                label Razón Social: 
-                              .col-6
-                                p.card-text #{data.ClientCarr[i].razon_social}
-                        .row
-                          .form-group.col-md-4
-                            .row
-                              .col-5
-                                label Direccion: 
-                              .col-7
-                                p.card-text #{data.ClientCarr[i].direccion}
-                      .card-footer
-                        .row
-                          //.col-6
-                          //  button.btn.btn-info(type='button') Editar
-                          .col-12
-                            input(type="hidden" name='id_usuario' value= data.ClientCarr[i].id_cliente)
-                            input(type="hidden" name='id_vehiculo' value= data.ClientCarr[i].id_vehiculo)
-                            input(type="hidden" name='id_tipo_cliente' value= data.ClientCarr[i].id_tipo_cliente) 
-                            if data.InfoUser.id_tipo_usuario == 2
-                              button.btn.btn-success.btn-block.rounded-pill(type='submit') Crear Pedido
-            - }
+            #PanelClientes
+              - for (let i = 0; i < data.nResultados; ++i) {
+                form(action='abrir-orden' method='POST')
+                  .row.mt-3
+                    .col-sm-12
+                      .card
+                        h4.card-header.py-2.border-bottom-0 
+                          .row.d-flex.justify-content-between.align-items-center.ml-1.text-uppercase
+                            small #{data.ClientCarr[i].nombre_cliente}
+                            a.btn.btn-success.btn-sm.rounded-pill(type='button' href='tel:'+data.ClientCarr[i].telefono+'')
+                              i.fas.fa-phone
+                          .row.d-flex.justify-content-start.ml-1.text-capitalize
+                            cite.blockquote-footer.text-success(title="Source Title") #{data.ClientCarr[i].tipo_cliente}
+                        .card-body
+                          .row
+                            .form-group.col-md-4
+                              .row
+                                .col-6
+                                  label DNI: 
+                                .col-6
+                                  p.card-text(onclick="CopiarDNI(this)") #{data.ClientCarr[i].dni}
+                            .form-group.col-md-4
+                              .row
+                                .col-6
+                                  label E-mail: 
+                                .col-6
+                                  p.card-text #{data.ClientCarr[i].email}
+                            .form-group.col-md-4
+                              .row
+                                .col-6
+                                  label Telefono: 
+                                .col-6
+                                  p.card-text #{data.ClientCarr[i].telefono}
+                          .row
+                            .form-group.col-md-4
+                              .row
+                                .col-6
+                                  label ruc: 
+                                .col-6
+                                  p.card-text #{data.ClientCarr[i].ruc}
+                            .form-group.col-md-4
+                              .row
+                                .col-6
+                                  label Razón Social: 
+                                .col-6
+                                  p.card-text #{data.ClientCarr[i].razon_social}
+                          .row
+                            .form-group.col-md-4
+                              .row
+                                .col-5
+                                  label direccion: 
+                                .col-7
+                                  p.card-text #{data.ClientCarr[i].direccion}
+                          .d-flex.justify-content-end
+                            .btn.btn-danger.btn-sm.rounded(onclick= 'BotonEliminarCliente('+i+')' type="button" data-toggle="modal" data-target="#modalConfirm")
+                              | Eliminar
+                            .btn.btn-primary.btn-sm.rounded(onclick= 'BotonActualizar('+i+')' type="button" data-toggle="modal" data-target="#modalEditUser")
+                              i.far.fa-edit.fa-2x
+                        .card-footer
+                          .row
+                            .col-12
+                              input(type="hidden" name='id_usuario' value= data.ClientCarr[i].id_cliente)
+                              input(type="hidden" name='id_vehiculo' value= data.ClientCarr[i].id_vehiculo)
+                              input(type="hidden" name='id_tipo_cliente' value= data.ClientCarr[i].id_tipo_cliente) 
+                              if data.InfoUser.id_tipo_usuario == 2
+                                button.btn.btn-success.btn-block.rounded-pill(type='submit') Crear Pedido
+              - }
 
           //- iNFO DEL AUTOMOVIL
           #car.tab-pane.fade(role='tabpanel', aria-labelledby='car-tab')
