@@ -20,7 +20,7 @@ block contenido
                     .card-body.p-1
                         .container-fluid
                             .row
-                                .col-12.col-sm.p-0
+                                .col-6.col-sm.p-0
                                     .m-1.border.border-muted.rounded
                                         .container-fluid
                                             .row.text-danger.d-flex.justify-content-center
@@ -41,6 +41,13 @@ block contenido
                                                 small Color
                                             .row.text-left.d-flex.justify-content-center
                                                 p6.text-center #{data.Detalle_Pedido[0].color}
+                                .col-6.col-sm.p-0
+                                    .m-1.border.border-muted.rounded
+                                        .container-fluid
+                                            .row.text-danger.d-flex.justify-content-center
+                                                small Año
+                                            .row.text-left.d-flex.justify-content-center
+                                                p6.text-center #{data.Detalle_Pedido[0].anio}
                                 //-.col-6.col-sm.p-0
                                 //-    .m-1.border.border-muted.rounded
                                 //-        .container-fluid
