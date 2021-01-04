@@ -369,7 +369,7 @@ block contenido
                 .card.rounded-0.mb-1 
                     .card-body.p-0
                         .d-flex.justify-content-around.border-bottom
-                            h5.my-auto.p-2.text-muted.text-uppercase  Placa: #{data.placa}
+                            h5.my-auto.p-2.text-muted.text-uppercase  Placa: #{data.infoVehiculo.placa}
                             h5.my-auto.p-2.text-danger Orden: N° #{data.NroOrden}
                             input#Nro_Orden(name='pNro_Orden' type="hidden" value= data.numero_Orden)
                             small#id_person(style="display:none") #{data.InfoUser.id_usuario}
@@ -386,21 +386,21 @@ block contenido
                                             .row.text-danger.d-flex.justify-content-center
                                                 small Marca
                                             .row.text-left.d-flex.justify-content-center
-                                                p6.text-center prueba
+                                                p6.text-center #{data.infoVehiculo.vehiculo_marca}
                                 .col-6.col-sm.p-0
                                     .m-1.border.border-muted.rounded
                                         .container-fluid
                                             .row.text-danger.d-flex.justify-content-center
                                                 small Modelo
                                             .row.text-left.d-flex.justify-content-center
-                                                p6.text-center prueba
+                                                p6.text-center #{data.infoVehiculo.modelo}
                                 .col-6.col-sm.p-0
                                     .m-1.border.border-muted.rounded
                                         .container-fluid
                                             .row.text-danger.d-flex.justify-content-center
                                                 small Color
                                             .row.text-left.d-flex.justify-content-center
-                                                p6.text-center prueba
+                                                p6.text-center #{data.infoVehiculo.color}
                                 .col-6.col-sm.p-0
                                     .m-1.border.border-danger.rounded
                                         .container-fluid
@@ -494,7 +494,7 @@ block contenido
                                         label(for='misObservaciones') Escribe tus observaciones
         .card.rounded-0
             #panel_Modal_Confirm
-            .card-header.text-center.value.text-uppercase Asigna a un persona que este disponible
+            .card-header.text-center.value.text-uppercase Asigna a un mecanico disponible
             .card-body.px-0
                 .container-fluid
                     #panel_mecanicos.row
