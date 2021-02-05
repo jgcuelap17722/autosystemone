@@ -20,6 +20,18 @@ mixin#modalEditUser.modal.fade(tabindex="-1" role="dialog" aria-labelledby="exam
         p3 Datos del Usuario
         .container-fluid.px-0
           .row.mt-2
+            //.col-12.col-md-6
+            .col-12
+              section.form-gradient
+                .md-form.mb-1.mt-0
+                  .d-flex.bd-highlight
+                    .flex-fill.bd-highlight
+                      input#busqueda_id_cliente(type='hidden',autocomplete='off',name='id_cliente')
+                      //i#icon_busqueda.fas.fa-search.prefix.mt-1
+                      input#idBusqueda.form-control.orden(type='text')
+                      //label#lb_busqueda(for='idBusqueda') Buscar Cliente por DNI, Nombre o Razon social
+                      //small#busquedahelp.form-text.text-info Verifique si el cliente existe (ESCRIBE NOMBRE, DNI O RAZON SOCIAL)
+          .row.mt-2
             .col-12
               section.form-gradient
                 .md-form.mb-1.mt-0

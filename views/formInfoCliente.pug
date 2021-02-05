@@ -75,6 +75,31 @@ prepend area-scripts
         console.log("id de Tipo_cliente",id_Tipo_cliente[i]); //Ver id seleccionado de marca
         //$('#tipo_cliente_send').val(id_Tipo_cliente[i]);
       });
+
+      const nombre_dni      = data.nombre_dni;
+      const pIdCliente      = data.pId_cliente;
+      const pNombreCliente      = data.pnombre_cliente;
+      // indice y marca recuperada            
+      etiquetaInputBusqueda = $('#idBusqueda').get(0);
+      //AWSPBusqueda = new Awesomplete(etiquetaInputBusqueda, { maxItems: 5,filter: Awesomplete.FILTER_STARTSWITH});
+      AWSPBusqueda = new Awesomplete(etiquetaInputBusqueda, { maxItems: 5});
+      AWSPBusqueda.list = nombre_dni;
+      console.log('lista de nombres y dni',nombre_dni);
+
+      // - accion click obcion
+        console.log(pIdCliente);
+        $('#idBusqueda').on('awesomplete-selectcomplete',function () {
+          //El método indexOf () devuelve la posición de la primera aparición de un valor especificado en una cadena.
+          let i = pNombreCliente.indexOf(this.value); 
+          console.log(this.value,'id es',pIdCliente[i])
+          sk_nuevoCliente.emit('data_cliente',pIdCliente[i])
+          $('#idBusqueda').val('')
+          $('#idBusqueda').blur()
+          
+          $('#busqueda_id_cliente').val(pIdCliente[i])
+          // Aca me quede Crear socket para recuperar datos de cliente enc campo
+        });
+
       // === === ESTILOS === ===
         $('#dtHistorialCliente').DataTable({
           "scrollX": true,

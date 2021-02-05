@@ -1,7 +1,7 @@
 const pool = require('../database'); //referencia a ala base de datos
 const helpers = require('../lib/helpers');
 const Queries = require('../lib/Queries');
-const Ordenes_hoy = {}
+const Ordenes_hoy = {};
 Consulta = (pQuery) => {return pool.query(pQuery)};
 
 Ordenes_hoy.recuperarOrdenes_hoy_get = async (req,res,next) => {

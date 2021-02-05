@@ -15,6 +15,7 @@ const { HacerConsulta } = require('../controllers/controlador.consultas');
 const { Recuperar_info_Cliente } = require('../controllers/controlador.info-cliente');
 const { recuperarReporte_get } = require('../controllers/controlador.reportes');
 const { recuperarOrdenes_hoy_get } = require('../controllers/controlador.ordenes-hoy');
+const { getDatosOrdenesApi } = require('../controllers/controlador.api');
 
 // Funcion parahacer consultass
 const Consulta = (pQuery) => pool.query(pQuery);
@@ -1231,9 +1232,12 @@ router.post('/detalle-seguimiento', isLoggedIn, async(req, res) => {
 });
 // Nueva ruta
 router.route('/reportes')
-    .get(recuperarReporte_get);
+  .get(recuperarReporte_get);
 
 router.route('/ordenes-hoy')
-    .get(isLoggedIn, recuperarOrdenes_hoy_get);
+	.get(isLoggedIn, recuperarOrdenes_hoy_get);
+	
+router.route('/api/orden/:numeroOrden')
+	.get(isLoggedIn, getDatosOrdenesApi);
 
 module.exports = router; // 859

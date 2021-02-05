@@ -605,7 +605,7 @@ io.on('connection', (sk_Navigation) => {
     let Emisor_nombre = [], Emisor_apellido_paterno = [], Emisor_fecha_creacion = [], ids_Notificaciones = [], nro_orden = [], id_Detalle_Pedidos = [], vehiculo = [];
 
     // SABER CUANTAS NOTIFICACIONES HAY EN LA TABLA TNOTIFICACIONES DE MI USUARIO
-    let query_nro_Notificaciones = 'SELECT count(id_notificaciones) as nro_Notificaciones FROM tnotificaciones WHERE id_user_receptor = ' + data_idUsuario_receptor + ' && id_estado_notificacion = 1;';
+    let query_nro_Notificaciones = `SELECT count(id_notificaciones) as nro_Notificaciones FROM tnotificaciones WHERE id_user_receptor = ${data_idUsuario_receptor} && id_estado_notificacion = 1;`;
     let consulta_Notificacion = await Consulta(query_nro_Notificaciones);
     let { nro_Notificaciones } = consulta_Notificacion[0];
     // salida de esta consulta 
@@ -630,7 +630,7 @@ io.on('connection', (sk_Navigation) => {
         // si es cajero(a) y tiene mas de 0 notificaciones
 
         // SABER CUANTOS ID_DETALLEPEDIDO_TENGO ASIGNADO COMO CAJA
-        const query_id_detalle_pedido_caja = 'CALL SP_GET_idDetalle_Pedido_caja(' + data_idUsuario_receptor + ');';
+        const query_id_detalle_pedido_caja = `CALL SP_GET_idDetalle_Pedido_caja(${data_idUsuario_receptor});`;
         const consulta_id_detalle_pedido_caja = await coneccion.query(query_id_detalle_pedido_caja);
 
         console.log('Mi id:', data_idUsuario_receptor, ' tiene ', consulta_id_detalle_pedido_caja[0]);
@@ -649,9 +649,9 @@ io.on('connection', (sk_Navigation) => {
 
         for (let i = 0; i <= ids_detalle_pedido_caja.length - 1; i++) {
           id_Detalle_Pedidos[i] = ids_detalle_pedido_caja[i].idDetallePedido;
-          let query_info_Emisor = 'CALL SP_Mis_facturaciones_asignadas (' + id_Detalle_Pedidos[i] + ');';
+          let query_info_Emisor = `CALL SP_Mis_facturaciones_asignadas (${id_Detalle_Pedidos[i]});`;
           let consulta_info_Emisor = await coneccion.query(query_info_Emisor);
-          console.log('Salida del boocle es ', consulta_info_Emisor[0][0].nro_orden);
+          // console.log('Salida del boocle es ', consulta_info_Emisor[0][0].nro_orden);
           nro_orden[i] = consulta_info_Emisor[0][0].nro_orden;
           vehiculo[i] = {
             placa: consulta_info_Emisor[0][0].placa,

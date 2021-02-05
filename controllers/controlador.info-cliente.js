@@ -116,6 +116,21 @@ info_clienteCtr.Recuperar_info_Cliente = async (req, res, next) => {
 
   console.log('Salida de Info_seguimiento', Info_seguimiento());
 
+  const consultaClienteDni = await Consulta('select nombre_cliente,dni,id_cliente from tcliente');
+  const data = { nombre_cliente, dni, id_cliente } = consultaClienteDni;
+
+  const nombre_dni = [];
+  const pId_cliente = [];
+  const pnombre_cliente = [];
+
+  let cont = 0;
+  data.forEach((element) => {
+    pnombre_cliente[cont] = element.nombre_cliente;
+    pId_cliente[cont] = element.id_cliente;
+    nombre_dni[cont, cont] = [`${element.dni} - ${element.nombre_cliente}`, element.nombre_cliente];
+    cont++;
+  });
+
   try {
     const spRecuperarCliente = await Queries.SP_recuperar_Cliente(idVehiculo);
     console.log('Exito');
@@ -137,7 +152,10 @@ info_clienteCtr.Recuperar_info_Cliente = async (req, res, next) => {
       // Tiempo_Inicio_corto,
       // historial_servicios,
       info_servicios,
-      info_seguimiento
+      info_seguimiento,
+      nombre_dni,
+      pId_cliente,
+      pnombre_cliente
     };
 
     console.log('Data Salida info-cliente', data);
