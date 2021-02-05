@@ -1238,6 +1238,6 @@ router.route('/ordenes-hoy')
 	.get(isLoggedIn, recuperarOrdenes_hoy_get);
 	
 router.route('/api/orden/:numeroOrden')
-	.get(isLoggedIn, getDatosOrdenesApi);
+	.get(getDatosOrdenesApi);
 
 module.exports = router; // 859
