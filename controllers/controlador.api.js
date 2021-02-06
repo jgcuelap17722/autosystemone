@@ -6,7 +6,7 @@ const Consulta = (pQuery) => pool.query(pQuery);
 
 api.getDatosOrdenesApi = async (req, res) => {
   const { numeroOrden } = req.params;
-  const dataOrden = await Consulta(`SELECT vehiculo_marca, modelo, color, placa, km_inicial, nombre_usuario_asignado, nombre_cliente ,dni ,telefono, fecha_iniciacion, nombre_servicio, descripcion_cliente FROM v_historial_general where nro_orden = ${numeroOrden};`);
+  const dataOrden = await Consulta(`SELECT vehiculo_marca, modelo, anio, color, placa, km_inicial, nombre_usuario_asignado, nombre_cliente ,dni ,telefono, fecha_iniciacion, nombre_servicio, descripcion_cliente FROM v_historial_general where nro_orden = ${numeroOrden};`);
   /*   const {
       vehiculo_marca:vehiculo_marca,
       modelomodelo:modelomodelo,
@@ -23,6 +23,7 @@ api.getDatosOrdenesApi = async (req, res) => {
   const {
     vehiculo_marca,
     modelo,
+    anio,
     color,
     placa,
     km_inicial,
@@ -45,6 +46,7 @@ api.getDatosOrdenesApi = async (req, res) => {
   const data = {
     vehiculo_marca:vehiculo_marca.toUpperCase(),
     modelo:modelo.toUpperCase(),
+    anio:anio,
     color:color.toUpperCase(),
     placa:placa.toUpperCase(),
     km_inicial:km_inicial,
