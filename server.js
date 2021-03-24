@@ -38,8 +38,8 @@ app.use(flash());
 app.use(passport.initialize()); // iniciate passport
 app.use(passport.session()); // inicia secion passport
 
-app.use(morgan('dev')); // usar morgan
-app.use(express.urlencoded({ extended: false }));
+app.use(morgan('dev')); // usar morgan (short)
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Variables Globales variables que toda la APP pueda acceder"
@@ -118,7 +118,7 @@ const io = SocketIO(server);
 // Lugar de las vistas y con el respectivo FORMATO DE VISTAS
 app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "pug");
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.urlencoded({ extended: true }));
 
 // Creando Rutas
 app.get('*', (_req, res) => {
@@ -442,6 +442,20 @@ io.on('connection', (sk_CrearOrden) => {
     sk_CrearOrden.emit('Servicio_agregado', NewService);
   });
 
+  sk_CrearOrden.on('Crear_Nueva_Recomendacion', async (Data) => {
+    const dHoy = {
+      d_date:helpers.new_Date(new Date()),
+      d_str:helpers.formatDateTime(helpers.new_Date(new Date()))
+    };
+    console.log(Data);
+    await coneccion.query(`CALL SP_Crear_Recomendacion("${Data.nombreRecomendacion}","${Data.id}","${dHoy.d_str}");`);
+    const recomendacionAgregado = await coneccion.query(`CALL SP_Recuperar_Recomendacion_Agregado("${Data.id}")`);
+    console.log("MESSS", recomendacionAgregado);
+    const nuevaRecomendacion = recomendacionAgregado[0][0];
+    sk_CrearOrden.emit('RecomendacionNueva', nuevaRecomendacion);
+  });
+
+
   // SOCKET UTILIZADO ACUALIAR ACCION DE MECANICO A 3
   // CON UN SOCKET LISTANDO LOS NUEVOS MECANICOS DESOCUPADOS
   sk_CrearOrden.on('Asignar_Mecanico', async (data) => {
@@ -455,6 +469,13 @@ io.on('connection', (sk_CrearOrden) => {
     // LISTAR LOS MEANICOS DESOCUPADOS
     io.emit('Mecanico_Asignado', mecanicosHabilitados); // => crearOrden
   });
+
+  sk_CrearOrden.on('Cancelar_Orden', async (data) => {
+    const qryCancelarPedido = `UPDATE tordenes_actuales SET id_estadoOrden = ${7} WHERE nro_orden = ${data}`;
+    await coneccion.query(qryCancelarPedido);
+    sk_CrearOrden.emit('Res_Cancelar_Orden');
+  });
+
 });
 
 io.on('connection', (sk_Navigation) => {
@@ -468,17 +489,17 @@ io.on('connection', (sk_Navigation) => {
     };
     // === === === === ASIGNACION DE PEDIDO === === === ===
 
-    // SABER CON QUE TIPO USUARIO ESTOY 
-    let query_id_tipo_usuario = 'SELECT id_tipo_usuario FROM tusuario_ttipousuario WHERE id_usuario = ' + data_idUsuario_receptor + ';';
+    // SABER CON QUE TIPO USUARIO ESTOY
+    let query_id_tipo_usuario = `SELECT id_tipo_usuario FROM tusuario_ttipousuario WHERE id_usuario = ${data_idUsuario_receptor};`;
     let consulta_idTipo_usuario = await Consulta(query_id_tipo_usuario);
     let { id_tipo_usuario } = consulta_idTipo_usuario[0];
-    // salida de esta consulta 
+    // salida de esta consulta
     console.log('Mi id: ', data_idUsuario_receptor, ' es de tipo: ', id_tipo_usuario);
 
     // RECUPERAR EL (id_detallePedido) AL QUE ESTA SIENDO ASIGNADO
-    let query_idDetallePedido = 'SELECT id_detallePedido,id_vehiculo FROM tdetallepedido WHERE id_usuario_asignador = ' + data_idUsuario_emisor + ' && nro_orden = ' + pNoroOrden + ';';
+    let query_idDetallePedido = `SELECT id_detallePedido,id_vehiculo,id_estadoOrden as idEstadoOrden FROM tdetallepedido WHERE id_usuario_asignador = ${data_idUsuario_emisor} && nro_orden = ${pNoroOrden};`;
     const consulta_idDetallePedido = await Consulta(query_idDetallePedido);
-    const { id_detallePedido, id_vehiculo } = await consulta_idDetallePedido[0];
+    const { id_detallePedido, id_vehiculo, idEstadoOrden } = await consulta_idDetallePedido[0];
     console.log('AL QUE ESTA SIENDO ASIGNADO', consulta_idDetallePedido);
 
     // RECUPERAR EL ID DE NOTIFICACION VINCULADA A ESTE EMISOR Y RECEPTOR
@@ -486,39 +507,42 @@ io.on('connection', (sk_Navigation) => {
     // (Fn_Enviar_Notificacion) esta funcion inserta en tnotificaciones un user_emisor y user_receptor
 
     // despues recupera el id de la notificacion agregada.
-    let query_id_notificacion = 'CALL SP_FN_Enviar_Notificacion(' + data_idUsuario_emisor + ',' + data_idUsuario_receptor + ',"'+dHoy.d_str+'")';
-    const consulta_id_Notificacion = await Consulta(query_id_notificacion);
-    const { id_Notificacion } = consulta_id_Notificacion[0][0];
+    if (idEstadoOrden !== 4) {
+      console.log('EL ESTADO ES ', idEstadoOrden);
+    } else {
+      let query_id_notificacion = `CALL SP_FN_Enviar_Notificacion(${ data_idUsuario_emisor},${data_idUsuario_receptor},"${dHoy.d_str}")`;
+      const consulta_id_Notificacion = await Consulta(query_id_notificacion);
+      const { id_Notificacion } = consulta_id_Notificacion[0][0];
+      // CAPTURAR LOS DETALLES DEL USUARIO QUE ME ESTA ENVIANDO ESTA NOTIFICACION
+      // (SP_Detalles_Notificacion) muestra toda la informacion del "idUsuario_emisor"
+      let query_Detalle_Notificacion = `CALL SP_Detalles_Notificacion(${data_idUsuario_receptor},${id_Notificacion})`;
+      const consulta_Detalles_Notificacion = await Consulta(query_Detalle_Notificacion);
+      const User_Emisor = { nombre, apellido_paterno, fecha_creacion } = consulta_Detalles_Notificacion[0][0];
+      const tiempo_Notificacion = helpers.timeago_int(fecha_creacion); // ==> convertir el tiempo
 
-    // CAPTURAR LOS DETALLES DEL USUARIO QUE ME ESTA ENVIANDO ESTA NOTIFICACION
-    // (SP_Detalles_Notificacion) muestra toda la informacion del "idUsuario_emisor"
-    let query_Detalle_Notificacion = 'CALL SP_Detalles_Notificacion(' + data_idUsuario_receptor + ',' + id_Notificacion + ')';
-    const consulta_Detalles_Notificacion = await Consulta(query_Detalle_Notificacion);
-    const User_Emisor = { nombre, apellido_paterno, fecha_creacion } = consulta_Detalles_Notificacion[0][0];
-    const tiempo_Notificacion = helpers.timeago_int(fecha_creacion); // ==> convertir el tiempo
+      // OBTENER EL NRO DE NOTIFICACIONES DE ESTE USUARIO
+      let query_Notificaciones = `SELECT count(id_notificaciones) as nro_Notificaciones FROM tnotificaciones WHERE id_user_receptor = ${data_idUsuario_receptor} && id_estado_notificacion = 1;`;
+      const consulta_Notificacion = await coneccion.query(query_Notificaciones);
+      const { nro_Notificaciones } = consulta_Notificacion[0];
 
-    // OBTENER EL NRO DE NOTIFICACIONES DE ESTE USUARIO
-    let query_Notificaciones = 'SELECT count(id_notificaciones) as nro_Notificaciones FROM tnotificaciones WHERE id_user_receptor = ' + data_idUsuario_receptor + ' && id_estado_notificacion = 1;';
-    const consulta_Notificacion = await coneccion.query(query_Notificaciones);
-    const { nro_Notificaciones } = consulta_Notificacion[0];
+      // RECUPERAR LA INFO DEL VEHICULO PARA MOSTRAR EN LA NOTIFICACION
+      console.log('IDE', id_detallePedido);
+      let query_info_vehiculo = `SELECT placa,vehiculo_marca,modelo FROM v_tvehiculo WHERE id_vehiculo = ${id_vehiculo};`;
+      let consulta_info_vehiculo = await Consulta(query_info_vehiculo);
+      console.log('detale Vehiculo Consulta', consulta_info_vehiculo);
+      let vehiculo = {
+        placa: consulta_info_vehiculo[0].placa,
+        vehiculo_marca: consulta_info_vehiculo[0].vehiculo_marca,
+        modelo: consulta_info_vehiculo[0].modelo
+      };
 
-    // RECUPERAR LA INFO DEL VEHICULO PARA MOSTRAR EN LA NOTIFICACION
-    console.log('IDE', id_detallePedido);
-    let query_info_vehiculo = 'SELECT placa,vehiculo_marca,modelo FROM v_tvehiculo WHERE id_vehiculo = ' + id_vehiculo + ';';
-    let consulta_info_vehiculo = await Consulta(query_info_vehiculo);
-    console.log('detale Vehiculo Consulta', consulta_info_vehiculo);
-    let vehiculo = {
-      placa: consulta_info_vehiculo[0].placa,
-      vehiculo_marca: consulta_info_vehiculo[0].vehiculo_marca,
-      modelo: consulta_info_vehiculo[0].modelo
-    };
+      console.log('detale Vehiculo', vehiculo);
 
-    console.log('detale Vehiculo', vehiculo);
-
-    // UNIMOS TODO PARA ENVIAR A - navigation -
-    const info_Notif = { User_Emisor, pNoroOrden, nro_Notificaciones, tiempo_Notificacion };
-    console.log('Info noti =>', info_Notif, 'id_Receptor => ', data_idUsuario_receptor);
-    io.emit('Notificacion_Recibida', info_Notif, data_idUsuario_receptor, id_detallePedido, id_tipo_usuario, id_Notificacion, vehiculo);
+      // UNIMOS TODO PARA ENVIAR A - navigation -
+      const info_Notif = { User_Emisor, pNoroOrden, nro_Notificaciones, tiempo_Notificacion };
+      console.log('Info noti =>', info_Notif, 'id_Receptor => ', data_idUsuario_receptor);
+      io.emit('Notificacion_Recibida', info_Notif, data_idUsuario_receptor, id_detallePedido, id_tipo_usuario, id_Notificacion, vehiculo);
+    }
   });
 
   // Solo Se usa este socket cuano el mecanico emite a facturar la orden
@@ -576,11 +600,10 @@ io.on('connection', (sk_Navigation) => {
     await coneccion.query(consulta_Liberar_Mecanico);
 
     // ELIMINAR LA NOTIFICACION QUE HABIA RECIBIDO CUANDO LO ASIGNARON A UN ORDEN
-
-    await coneccion.query(`UPDATE tnotificaciones SET id_estado_notificacion = 2 WHERE id_notificaciones = ${pIdNotificacion};`);
+    await coneccion.query(`DELETE FROM tnotificaciones WHERE id_notificaciones = ${pIdNotificacion};`);
 
     // OBTENER EL NRO DE NOTIFICACIONES DE ESTE USUARIO
-    let query_Notificaciones = 'SELECT count(id_notificaciones) as nro_Notificaciones FROM tnotificaciones WHERE id_user_receptor = ' + data_idUsuario_receptor + ' && id_estado_notificacion = 1;';
+    let query_Notificaciones = `SELECT count(id_notificaciones) as nro_Notificaciones FROM tnotificaciones WHERE id_user_receptor = ${data_idUsuario_receptor} && id_estado_notificacion = 1;`;
 
     // ACTUALIZAMOS EL DETALLEPedido a Facturando
     await Consulta('UPDATE tdetallepedido SET id_estadoOrden = 6 WHERE id_detallePedido = ' + pId_Detalle_Pedido + ';');
@@ -602,7 +625,13 @@ io.on('connection', (sk_Navigation) => {
   // CNSULTANDO A LA TABLA SI TENGO NOTIFICACIONES
   sk_Navigation.on('Requiero_Notificaciones', async (data_idUsuario_receptor) => {
     // Variables de Entorno
-    let Emisor_nombre = [], Emisor_apellido_paterno = [], Emisor_fecha_creacion = [], ids_Notificaciones = [], nro_orden = [], id_Detalle_Pedidos = [], vehiculo = [];
+    let Emisor_nombre = [];
+    let Emisor_apellido_paterno = [];
+    let Emisor_fecha_creacion = [];
+    let ids_Notificaciones = [];
+    let nro_orden = [];
+    let id_Detalle_Pedidos = [];
+    let vehiculo = [];
 
     // SABER CUANTAS NOTIFICACIONES HAY EN LA TABLA TNOTIFICACIONES DE MI USUARIO
     let query_nro_Notificaciones = `SELECT count(id_notificaciones) as nro_Notificaciones FROM tnotificaciones WHERE id_user_receptor = ${data_idUsuario_receptor} && id_estado_notificacion = 1;`;
@@ -619,7 +648,7 @@ io.on('connection', (sk_Navigation) => {
     console.log('Mi id: ', data_idUsuario_receptor, ' es de tipo: ', id_tipo_usuario);
 
     // SABER CUALES SON LOS IDS DE NOTIFICACION DE MI ID
-    let consulta_id_notificacion = await coneccion.query('SELECT id_notificaciones FROM tnotificaciones WHERE id_user_receptor = ' + data_idUsuario_receptor + ' && id_estado_notificacion = 1');
+    let consulta_id_notificacion = await coneccion.query(`SELECT id_notificaciones FROM tnotificaciones WHERE id_user_receptor = ${data_idUsuario_receptor} && id_estado_notificacion = 1`);
     // salida de esta consulta 
     console.log('Mi id: ', data_idUsuario_receptor, ' tiene estos id de notificacion: ', consulta_id_notificacion);
 
@@ -694,8 +723,8 @@ io.on('connection', (sk_Navigation) => {
         // Saber que nro de orden te ASIGNARON 
 
         // const query_nro_orden = `SELECT id_detallePedido,nro_orden FROM tdetallepedido where id_estadoOrden = 4 && id_usuario_asignado = '+data_idUsuario_receptor+';`;
-        let id_etapa_pedido = 4;
-        const query_nro_orden = `CALL SP_GET_Info_Notificacion(` + data_idUsuario_receptor + `,` + id_etapa_pedido + `);`;
+        // let id_etapa_pedido = 4;
+        const query_nro_orden = `CALL SP_GET_Info_Notificacion(`+data_idUsuario_receptor+`);`;
 
         const consulta_nro_orden = await coneccion.query(query_nro_orden);
         // const {nro_orden,id_detallePedido} = consulta_nro_orden[0];
@@ -1021,5 +1050,7 @@ io.on('connection', (sk_detallePedido) => {
     sk_detallePedido.emit('Actualizo_detalle_pedido');
   });
 });
+
+
 
 // 986

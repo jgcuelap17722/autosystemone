@@ -124,9 +124,30 @@ block contenido
                                                 .row.text-left.px-2
                                                     p6.text-justify.font-weight-light #{pObs_Client}
                                 - let i = 0;
-                                each val in data.Detalle_Pedido 
-                                    +Detalle_Pedido(data.Detalle_Pedido[i].nombre_servicio,data.Detalle_Pedido[i].descripcion_cliente,data.Detalle_Pedido[i].nombre_cliente)
+                                each val in data.detallePedido 
+                                    +Detalle_Pedido(data.detallePedido[i].nombre_servicio,data.detallePedido[i].descripcion_cliente,data.Detalle_Pedido[0].nombre_cliente)
                                     - i++
+                .card.rounded-0.mb-1 
+                    .card-header.py-2.border-bottom-0
+                        i#iconombre.fas.fa-clipboard-list.text-muted.mr-2
+                        strong.text-muted RECOMENDACIÓNES
+                    .card-body.p-1
+                        .container-fluid
+                            .row
+                                mixin Detalle_Recomendacion(pNombre_Servicio,pObs_Client,pNombre_Client)
+                                    .col-12.col-sm-6.p-0.mb-2
+                                        i.fas.fa-angle-double-right.ml-1
+                                        strong.m-1 #{pNombre_Servicio}
+                                        .m-1.border.border-muted.rounded
+                                            .container-fluid
+                                                .row.text-danger.d-flex.justify-content-center
+                                                    small Observacion del Recepcionista ( #{pNombre_Client} )
+                                                .row.text-left.px-2
+                                                    p6.text-justify.font-weight-light #{pObs_Client}
+                                - let r = 0;
+                                each val in data.detalleRecomendación 
+                                    +Detalle_Recomendacion(data.detalleRecomendación[r].nombreRecomendacion, data.detalleRecomendación[r].descripcionRecomendacion, "-")
+                                    - r++
                                 //-.col-12.col-sm-6.p-0.mb-2
                                 //-    i.fas.fa-angle-double-right.ml-1
                                 //-    strong.m-1 Revicion de Rotulas

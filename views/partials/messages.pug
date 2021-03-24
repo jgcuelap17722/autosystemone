@@ -42,14 +42,14 @@ append message
                     .alert.alert-success.alert-dismissible.fade.show(role='alert') #{messages}
                         button#btn.close(type='button', data-dismiss='alert', aria-label='Close')
                             span(aria-hidden='true') ×
-    if (messages) == 'Existe ya un pedido en proceso con esta placa'
+    if (messages) == 'Otro usuario abrió orden a este Vehiculo'
             #cont.container.pt-4
                 .row
                     .col-md-4.mx-auto
                         .alert.alert-success.alert-dismissible.fade.show(role='alert') #{messages}
                             button#btn.close(type='button', data-dismiss='alert', aria-label='Close')
                                 span(aria-hidden='true') ×
-    if (messages) == 'Se ha acabado con esta orden'
+    if (messages) == 'Se ha finalizado esta orden'
         #cont.container.pt-4
             .row
                 .col-md-4.mx-auto

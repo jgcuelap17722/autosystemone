@@ -1,0 +1,25 @@
+mixin#modalCrearPedido.modal.fade(tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true")
+  .modal-dialog.modal-notify.modal-danger.rounded(role="document")
+    // Content
+    .modal-content
+      // Header
+      .modal-header.d-flex.justify-content-center
+        p.heading Crear o Busca un Servicio !
+        button.close(type="button" data-dismiss="modal" aria-label="Close")
+          span.white-text(aria-hidden="true") ×
+      // Body
+      .modal-body
+        p.text-center Introduce el nombre del servicio que desees agregar o buscar
+        .form-row
+          .form-group.col-12
+            section.form-gradient
+              .md-form.mb-1.mt-0
+                .d-flex.bd-highlight
+                  .flex-fill.bd-highlight
+                    input#idBusqueda.form-control(type='text',autocomplete='off')
+                    label#lb_busqueda(for='idBusqueda') Buscar Servicio
+                  .m-auto.bg-transparent
+                    i#icon_busqueda.fas.fa-search.m-2
+      .modal-footer.flex-center
+        button#btnCrear.btn.btn-danger.rounded.rounded-pill(type="button") Crear
+        button#btnCancelar.btn.btn-outline-danger.waves-effect.rounded.rounded-pill(type="button" data-dismiss="modal") Cancelar

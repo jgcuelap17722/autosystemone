@@ -1,0 +1,17 @@
+mixin#modalConfirmCancelarPedido.modal.fade(tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true")
+  .modal-dialog.modal-sm.modal-notify.modal-danger(role="document")
+    // Content
+    .modal-content.text-center
+      // Header
+      .modal-header.d-flex.justify-content-center
+        p.heading Deseas cancelar este pedido ?
+      // Body
+      .modal-body
+        i.fas.fa-times.fa-4x.animated.rotateIn
+      // Footer
+      .modal-footer.flex-center
+        a#btnCancelarPedido.btn.btn-outline-danger(href="") SI
+        a.btn.btn-danger.waves-effect(type="button" data-dismiss="modal") No
+    // /.Content
+// Modal: modalConfirmDelete
+

@@ -4,11 +4,16 @@ const Queries = require('../lib/Queries');
 
 const info_clienteCtr = {};
 const Consulta = (pQuery) => pool.query(pQuery);
+
+// GET info-clientes
 info_clienteCtr.Recuperar_info_Cliente = async (req, res, next) => {
-  console.log('req.query', req.query);
+  // console.log('req.query', req.query);
+
   // VARIABLES
   const InfoUser        = await helpers.InfoUser(req.user.id_usuario); // Info Usuario Logueado
   const idVehiculo      = parseInt(req.query.id_vehiculo, 10); // id_vehiculo Info
+
+  // RECUPERAR LOS TIPOS DE PROPIETARIOS DE VEHICULOS
   const TipoCliente     = await Queries.Tipo_Cliente_IDS_Tipo_Cliente(); // Consulta
   const idTipo_cliente  = [];
   const Tipo_cliente    = [];
@@ -17,21 +22,31 @@ info_clienteCtr.Recuperar_info_Cliente = async (req, res, next) => {
   TipoCliente.forEach((element) => {
     idTipo_cliente[n] = element.id_tipo_cliente;
     Tipo_cliente[n] = element.tipo_cliente;
-    n++;
+    n += 1;
   });
 
   const Tipos_Cliente = { idTipo_cliente, Tipo_cliente };
   console.log('idTipo_cliente - Tipo_cliente', Tipos_Cliente);
 
   // RECUPERAR HISTORIAL DE SERVICIOS DEL VEHICULO
-  const queryHistorialServicios     = `SELECT * FROM v_historial_resumen where id_vehiculo = ${idVehiculo};`;
-  const consultaHistorialServicios  = await Consulta(queryHistorialServicios);
-  const historial_servicios         = consultaHistorialServicios;
+  const qryHistorialServicios = `SELECT * FROM v_historial_resumen where id_vehiculo = ${idVehiculo} ORDER BY nro_orden DESC;`;
+  const consultaHistorialServicios = await Consulta(qryHistorialServicios);
+  const historial_servicios = consultaHistorialServicios;
 
-  // RECUPERAR HISTORIUAL DE LLAMADAS
-  const query_historial_seguimiento       = `SELECT * FROM v_ids_detalle_seguimiento where id_vehiculo = ${idVehiculo} && id_usuario is not null;`;
-  const consulta_historial_seguimiento    = await Consulta(query_historial_seguimiento);
-  const historial_seguimiento             = consulta_historial_seguimiento;
+  // RECUPERAR LOS PEDIDOS DE ESTE VEHICULO
+  const queryPedidoVehiculo = `CALL SP_GET_PEDIDO_VEHICULO(${idVehiculo});`;
+  const resPedidoVehiculo = await Consulta(queryPedidoVehiculo);
+  const pedidoVehiculo = resPedidoVehiculo[0];
+
+  // RECUPERAR LAS RECOMENDACIONES A ESTE VEHICULO
+  const qryRecomendacionVehiculo = `CALL SP_GET_RECOMENDACION_VEHICULO(${idVehiculo});`;
+  const resRecomendacionVehiculo = await Consulta(qryRecomendacionVehiculo);
+  const recomendacionVehiculo = resRecomendacionVehiculo[0];
+
+  // RECUPERAR HISTORIAL DE LLAMADAS
+  const query_historial_seguimiento    = `SELECT * FROM v_ids_detalle_seguimiento where id_vehiculo = ${idVehiculo} && id_usuario is not null;`;
+  const consulta_historial_seguimiento = await Consulta(query_historial_seguimiento);
+  const historial_seguimiento          = consulta_historial_seguimiento;
   Validar_Usuario_Seguimiento = async (pId_usuario) => {
     // Recuperar los diferentes usuarios que hicieron las llamadas a clientes
     const queryInfoUsuario     = `
@@ -48,32 +63,101 @@ info_clienteCtr.Recuperar_info_Cliente = async (req, res, next) => {
 
   Info_Servicios = async () => {
     if (historial_servicios.length != 0) {
-      let Tiempo_Inicio = [],
-      Tiempo_Inicio_corto = [],
-      h = 0;
-  
-    historial_servicios.forEach(element => {
-      Tiempo_Inicio[h]        = helpers.timeago_int(historial_servicios[h].fecha_iniciacion)
-      Tiempo_Inicio_corto[h]  = helpers.formatTime(historial_servicios[h].fecha_iniciacion)
-      h++
-    });
+      let Tiempo_Inicio = [];
+      let Tiempo_Inicio_corto = [];
+      let h = 0;
 
-    info_servicios = 
-    {
-      historial_servicios,
-      Tiempo_Inicio,
-      Tiempo_Inicio_corto,
-      estado:true
-    }
+      historial_servicios.forEach(() => {
+        Tiempo_Inicio[h] = helpers.timeago_int(historial_servicios[h].fecha_iniciacion);
+        Tiempo_Inicio_corto[h] = helpers.formatTime(historial_servicios[h].fecha_iniciacion);
+        h += 1;
+      });
 
-    return info_servicios
-    } else {
-      info_servicios = 
-      {
-        estado:false
+      // SEPARAR NOMBRE DE PEDIDO
+      const nombrePedidoR = await pedidoVehiculo.reduce((acumulador, item) => {
+        acumulador[item.nroOrden] = acumulador[item.nroOrden] || [];
+        acumulador[item.nroOrden].push(item.nombre_servicio);
+        return acumulador;
+      }, {});
+      // SEPARAR DESCRIPCION PEDIDO
+      const descripcionPedidoR = await pedidoVehiculo.reduce((acumulador, item) => {
+        acumulador[item.nroOrden] = acumulador[item.nroOrden] || [];
+        acumulador[item.nroOrden].push(item.descripcion_cliente);
+        return acumulador;
+      }, {});
+      // SEPARAR NOMBRE DE PEDIDO
+      const nombreRecomendacionR = await recomendacionVehiculo.reduce((acumulador, item) => {
+        acumulador[item.nroOrden] = acumulador[item.nroOrden] || [];
+        acumulador[item.nroOrden].push(item.nombreRecomendacion);
+        return acumulador;
+      }, {});
+      // SEPARAR DESCRIPCION PEDIDO
+      const descripcionRecomendacionR = await recomendacionVehiculo.reduce((acumulador, item) => {
+        acumulador[item.nroOrden] = acumulador[item.nroOrden] || [];
+        acumulador[item.nroOrden].push(item.descripcionRecomendacion);
+        return acumulador;
+      }, {});
+
+      // ORDENAR NOMBRE DE PEDIDO
+      const descripcionPedido = await Object.keys(descripcionPedidoR).reverse().map(
+        (key) => descripcionPedidoR[key]
+      );
+      // ORDENAR DESCRIPCION PEDIDO
+      const nombrePedido = await Object.keys(nombrePedidoR).reverse().map(
+        (key) => nombrePedidoR[key]
+      );
+      // JUNTAR LOS OBJETOS descripcionPedido Y nombrePedido
+      const historialPedido = await Object.keys(descripcionPedido).map((key) => ({
+        nombre_servicio: nombrePedido[key],
+        descripcion_cliente: descripcionPedido[key]
+      }));
+
+      // ORDENAR NOMBRE DE PEDIDO
+      const descripcionRecomendacion = await Object.keys(descripcionRecomendacionR).reverse().map(
+        (key) => descripcionRecomendacionR[key]
+      );
+      // ORDENAR DESCRIPCION PEDIDO
+      const nombreRecomendacion = await Object.keys(nombreRecomendacionR).reverse().map(
+        (key) => nombreRecomendacionR[key]
+      );
+      // JUNTAR LOS OBJETOS descripcionPedido Y nombrePedido
+      const historialRecomendacion = await Object.keys(descripcionRecomendacion).map((key, i) => ({
+        nombreRecomendacion: nombreRecomendacion[key],
+        descripcionRecomendacion: descripcionRecomendacion[key]
+      }));
+
+      /* console.log('historialRecomendacion --', historialRecomendacion);
+      console.log('historialPedido --', historialPedido);
+
+      console.log('historial_servicios -->', historial_servicios); */
+
+      // JUNTAR descripcionPedido Y nombrePedido CON datos de orden filtrado
+      for (let i = 0; i <= historial_servicios.length - 1; i++) {
+        historial_servicios[i].nombre_servicio = historialPedido[i].nombre_servicio;
+        historial_servicios[i].descripcion_cliente = historialPedido[i].descripcion_cliente;
+        historial_servicios[i].nombreRecomendacion = historialRecomendacion[i].nombreRecomendacion;
+        historial_servicios[i].descripcionRecomendacion = historialRecomendacion[i].descripcionRecomendacion;
       }
-    return info_servicios
+      /* console.log('SALIDA DE nombreRecomendacion', nombreRecomendacionR);
+      console.log('SALIDA DE descripcionRecomendacion', descripcionRecomendacionR);
+
+      console.log('SALIDA DE OBJETO', historial_servicios);
+      console.log('SALIDA DE historialRecomendacion', historialRecomendacion); */
+
+      info_servicios = {
+        historial_servicios,
+        historialPedido,
+        historialRecomendacion,
+        Tiempo_Inicio,
+        Tiempo_Inicio_corto,
+        estado:true
+      };
+      return info_servicios
     }
+    info_servicios = {
+      estado:false
+    };
+    return info_servicios;
   };
 
   Info_seguimiento = async () => {
@@ -114,7 +198,7 @@ info_clienteCtr.Recuperar_info_Cliente = async (req, res, next) => {
     
   };
 
-  console.log('Salida de Info_seguimiento', Info_seguimiento());
+  console.log('Salida de Historialx2', Info_Servicios());
 
   const consultaClienteDni = await Consulta('select nombre_cliente,dni,id_cliente from tcliente');
   const data = { nombre_cliente, dni, id_cliente } = consultaClienteDni;
@@ -128,7 +212,7 @@ info_clienteCtr.Recuperar_info_Cliente = async (req, res, next) => {
     pnombre_cliente[cont] = element.nombre_cliente;
     pId_cliente[cont] = element.id_cliente;
     nombre_dni[cont, cont] = [`${element.dni} - ${element.nombre_cliente}`, element.nombre_cliente];
-    cont++;
+    cont += 1;
   });
 
   try {

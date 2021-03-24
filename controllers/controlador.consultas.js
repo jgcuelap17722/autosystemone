@@ -17,7 +17,7 @@ consultasCtr.HacerConsulta = async (req, res) => {
   let n = 0;
   placasIdsVehiculos.forEach((element) => {
     id_vehiculo[n] = element.id_vehiculo;
-    Placas[n] = element.placa;
+    Placas[n] = `${element.placa} - ${element.vehiculo_marca} ${element.modelo}`;
     n++;
   });
 

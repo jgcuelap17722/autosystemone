@@ -11,7 +11,10 @@ append styles
   style.
     .awesomplete > ul {
       text-transform: uppercase;
-      font-weight: 425;
+      font-weight: 418;
+    }
+    .input-lg {
+      font-size: 20px;
     }
 block contenido
   #total.container.h-100
@@ -19,17 +22,25 @@ block contenido
       .col-12
         .card.border-danger
           form#form-post(action="nuevo-cliente" method="post")
-            .card-header.text-center.alert-danger.value 
-              strong INGRESE LA PLACA DEL VEHICULO
+            .card-header.text-center.alert-danger.value
+              strong INGRESE LA PLACA DEL VEHICUL
+              i.fa.fa-search.fa-1x
             .card-body
-              .row.justify-content-center.align-items-center
+              //.row.justify-content-center.align-items-center
+                //i.fa.fa-search.fa-2x(style="color:rgb(204 2 2)")
+                //section.form-gradient
+                  //.md-form.form-lg
+                    //i.fa.fa-car.prefix.mb-1
+                    //input#cbPlaca.form-control-xl.text-center.text-uppercase.h4.orden(type='text',name='nuevaPlaca',placeholder='Ejemplo, XYZ-123', maxlength='7', autocomplete='off',required='')
+              .d-flex.flex-column
                 section.form-gradient
-                  .md-form
-                    i.fa.fa-car.prefix.mb-1
-                    input#cbPlaca.form-control-xl.text-center.text-uppercase.h4.orden(type='text',name='nuevaPlaca',placeholder='Ejemplo, XYZ-123', maxlength='7', autocomplete='off',required='')
+                  .md-form.form-lg
+                    //i.fa.fa-search.fa-2x(style="color:rgb(204 2 2)")
+                    input#cbPlaca.form-control.form-control-lg.text-center.text-uppercase.h4.font-weight-bold.text-dark.pb-0.input-lg(type='text',name='nuevaPlaca',placeholder='Ejemplo, XYZ-123', maxlength='7', autocomplete='off',required='')
+              .row.justify-content-center.align-items-center
                 button#boton_nuevo.btn.btn-success(type='submit')
-                  i.fas.fa-user-plus(font-size='16px')
-                  | nuevo
+                  i.fas.fa-user-plus(font-size='17px')
+                  | nuevo vehiculo
   form#form-get(action="info-cliente")
     input#id_Vehiculo(type="hidden", name='id_vehiculo')
     input#Placa(type="hidden", name='placa')

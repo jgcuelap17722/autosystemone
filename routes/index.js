@@ -792,7 +792,7 @@ router.get('/studio', async(req, res) => {
 });
 
 router.route('/crear-checklist')
-    .post(asinarOrden);
+  .post(asinarOrden);
 
 router.get('/edit-password', isLoggedIn, async(req, res) => {
     res.render('edit-password');
@@ -865,7 +865,7 @@ router.post('/detalle-pedido', isLoggedIn, async(req, res) => {
 router.get('/detalle-pedido', isLoggedIn, async(req, res) => {
     // === === === ESTA RUTA SOLO SERA PARA EL MECANICO :( === === ===
 
-    // RECIBIMOS LAS BARIABLES POR LA DIRECCION URL
+    // RECIBIMOS LAS VARIABLES POR LA DIRECCION URL
     // El id_receptor = yo / El idDetallePedido = al que me asignaron.
     const InfoUser = await helpers.InfoUser(req.user.id_usuario);
     console.log('req.query', req.query);
@@ -881,18 +881,30 @@ router.get('/detalle-pedido', isLoggedIn, async(req, res) => {
       console.log('consulta_Detalle_mis_pedidos_asignados:', consulta_Detalle_mis_pedidos_asignados[0], 'para mi id: ', id_receptor); */
 
     // SOLAMENTE QUIERO VER LA INFORMACION DEL PEDIDO CON ESTE ID_DETALLE_PEDIDO
-    const queryDetallePedidoTerminado = `CALL SP_Mis_facturaciones_asignadas(${idDetallePedido})`;
 
+    const queryDetallePedido = `SELECT * FROM v_detallepedido WHERE id_detallePedido = ${idDetallePedido}`;
+    const resDetallePedido = await Consulta(queryDetallePedido);
+    
+    const queryDetalleRecomendación = `SELECT * FROM v_detallerecomendacion WHERE idDetallePedido = ${idDetallePedido}`;
+    const resDetalleRecomendación = await Consulta(queryDetalleRecomendación);
+    
+    const queryDetallePedidoTerminado = `CALL SP_Mis_facturaciones_asignadas(${idDetallePedido})`;
     const consultaDetallePedidoTerminado = await Consulta(queryDetallePedidoTerminado);
+    
+    const detallePedido = resDetallePedido;
+    const detalleRecomendación = resDetalleRecomendación;
+    
     console.log('Respuesta detalle-pedido:', consultaDetallePedidoTerminado[0]);
 
     const Detalle_Pedido = consultaDetallePedidoTerminado[0];
     const data = {
-        InfoUser,
-        Detalle_Pedido,
-        id_tipo_usuario,
-        idDNotificacion,
-        idDetallePedido
+      InfoUser,
+      Detalle_Pedido,
+      detallePedido,
+      detalleRecomendación,
+      id_tipo_usuario,
+      idDNotificacion,
+      idDetallePedido
     };
 
     console.log('informacion pedido', data);
@@ -903,56 +915,66 @@ router.get('/detalle-pedido', isLoggedIn, async(req, res) => {
 });
 
 router.post('/detalle-pedido-facturacion', isLoggedIn, async(req, res, next) => {
-    const { id_detalle_pedido, id_Notificacion } = req.body;
-    console.log('req.body', req.body);
+  const { id_detalle_pedido, id_Notificacion } = req.body;
+  console.log('req.body', req.body);
 
-    console.log('INICIO CAJERO SUBMIT______________________________________________________________________________________________');
+  console.log('INICIO CAJERO SUBMIT______________________________________________________________________________________________');
 
-    // SABER LA FECHA DE INICIO Y nro_orden de este id_detalle_pedido
-    const query_fecha_inicio = `SELECT fecha,nro_Orden FROM tdetallepedido where id_detallePedido = ${id_detalle_pedido};`;
-    const consulta_fecha_inicio = await Consulta(query_fecha_inicio);
-    const { fecha, nro_Orden } = consulta_fecha_inicio[0];
+  // SABER LA FECHA DE INICIO Y nro_orden de este id_detalle_pedido
+  const query_fecha_inicio = `SELECT fecha,nro_Orden FROM tdetallepedido where id_detallePedido = ${id_detalle_pedido};`;
+  const consulta_fecha_inicio = await Consulta(query_fecha_inicio);
+  const { fecha, nro_Orden } = consulta_fecha_inicio[0];
 
-    // ordenamos la fecha para incertar en TABLA ORDENES GENERALES
-    const date = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`;
-    const time = `${fecha.getHours()}:${fecha.getMinutes()}:${fecha.getSeconds()}`;
-    const dateTime = `${date} ${time}`;
-    let pFechaHoy = helpers.new_Date(new Date());
-    pFechaHoy = helpers.formatDateTime(pFechaHoy);
-    // la salida es esta
-    console.log('La Fecha de iniciacion es', dateTime, 'Y numero de orden es : ', nro_Orden);
+  // ordenamos la fecha para incertar en TABLA ORDENES GENERALES
+  const date = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`;
+  const time = `${fecha.getHours()}:${fecha.getMinutes()}:${fecha.getSeconds()}`;
+  const dateTime = `${date} ${time}`;
+  let pFechaHoy = helpers.new_Date(new Date());
+  pFechaHoy = helpers.formatDateTime(pFechaHoy);
+  // la salida es esta
+  console.log('La Fecha de iniciacion es', dateTime, 'Y numero de orden es : ', nro_Orden);
 
-    // CAMBIAR EL ESTADO DE ORDEN A 5 = finalizado DE ORDENES ACTUALES
-    await Consulta(`UPDATE tordenes_actuales SET id_estadoOrden = 5 WHERE (nro_orden = ${nro_Orden});`);
-    await Consulta(`UPDATE tdetallepedido SET id_estadoOrden = 5 WHERE (nro_orden = ${nro_Orden});`);
+  // CAMBIAR EL ESTADO DE ORDEN A 5 = finalizado DE ORDENES ACTUALES
+  await Consulta(`UPDATE tordenes_actuales SET id_estadoOrden = 5 WHERE (nro_orden = ${nro_Orden});`);
+  await Consulta(`UPDATE tdetallepedido SET id_estadoOrden = 5 WHERE (nro_orden = ${nro_Orden});`);
 
-    // INCERTANDO EN ORDENES GENERALES
-    await Consulta(`CALL SP_ADD_OrdenesGenerales(${nro_Orden},"${dateTime}","${pFechaHoy}",${id_detalle_pedido});`);
+  // INCERTANDO EN ORDENES GENERALES
+  await Consulta(`CALL SP_ADD_OrdenesGenerales(${nro_Orden},"${dateTime}","${pFechaHoy}",${id_detalle_pedido});`);
 
-    // ACTUALIZAMOS EL DETALLE FACTURACION A 2 PARA SABER QUE SE HA FACTURADO
-    await Consulta(`UPDATE tdetalle_facturacion SET id_estado_facturacion = 2 where (id_detalle_pedido = ${id_detalle_pedido});`);
+  // ACTUALIZAMOS EL DETALLE FACTURACION A 2 PARA SABER QUE SE HA FACTURADO
+  await Consulta(`UPDATE tdetalle_facturacion SET id_estado_facturacion = 2 where (id_detalle_pedido = ${id_detalle_pedido});`);
 
-    // ELIMINAR ESTA NOTIFICACION DE PEDIDO QUE ME ENVIO EL ASIGNADOR
-    await Consulta(`UPDATE tnotificaciones SET id_estado_notificacion = 2 where (id_notificaciones = ${id_Notificacion});`);
+  // ELIMINAR ESTA NOTIFICACION DE PEDIDO QUE ME ENVIO EL ASIGNADOR
+  await Consulta(`UPDATE tnotificaciones SET id_estado_notificacion = 2 where (id_notificaciones = ${id_Notificacion});`);
 
-    // ELIMINAR ESTA NOTIFICACION DE PEDIDO QUE ME ENVIO EL ASIGNADOR
-    const consulta_IdServicios_Usados = await Consulta(`SELECT id_servicio FROM tpedido where (id_detallePedido = ${id_detalle_pedido});`);
-    const id_servicio = consulta_IdServicios_Usados;
-    console.log('id_servicio', id_servicio);
+  // ELIMINAR ESTA NOTIFICACION DE PEDIDO QUE ME ENVIO EL ASIGNADOR
+  const consulta_IdServicios_Usados = await Consulta(`SELECT id_servicio FROM tpedido where (id_detallePedido = ${id_detalle_pedido});`);
+  const id_servicio = consulta_IdServicios_Usados;
+  console.log('id_servicio', id_servicio);
 
-    // RANKEAR LOS SERVICIOS QUE SE UTILIZARON
-    for (let cont = 0; cont <= id_servicio.length - 1; cont++) {
-        const consulta_veces = await Consulta(`SELECT veces_usada FROM tservicios_generales WHERE id_servicios_generales = ${id_servicio[cont].id_servicio};`);
-        let veces = consulta_veces[0].veces_usada;
-        veces++;
-        await Consulta(`UPDATE tservicios_generales SET veces_usada = ${veces} WHERE id_servicios_generales = ${id_servicio[cont].id_servicio};`);
-    }
+  // RANKEAR LOS SERVICIOS QUE SE UTILIZARON
+  for (let cont = 0; cont <= id_servicio.length - 1; cont++) {
+      const consulta_veces = await Consulta(`SELECT veces_usada FROM tservicios_generales WHERE id_servicios_generales = ${id_servicio[cont].id_servicio};`);
+      let veces = consulta_veces[0].veces_usada;
+      veces++;
+      await Consulta(`UPDATE tservicios_generales SET veces_usada = ${veces} WHERE id_servicios_generales = ${id_servicio[cont].id_servicio};`);
+  }
 
-    // await Consulta('DELETE FROM tnotificaciones WHERE (id_user_emisor = '+id_usuario_asignador+' && id_user_receptor = '+req.user.id_persona+');');
-    req.flash('messages', 'Se ha acabado con esta orden');
-    console.log('FIN CAJERO SUBMIT______________________________________________________________________________________________');
-    res.redirect('/profile');
-    next();
+  const consultaRecomendaciones = await Consulta(`SELECT idRecomendacion FROM tpedidorecomendacion where (idDetallePedido = ${id_detalle_pedido});`);
+  const Recomendaciones = consultaRecomendaciones;
+
+  for (let j = 0; j <= Recomendaciones.length - 1; j++) {
+      const vecesRecomendado = await Consulta(`SELECT vecesUsada FROM trecomendacion WHERE idRecomendacion = ${Recomendaciones[j].idRecomendacion};`);
+      let vecesRecomend = vecesRecomendado[0].vecesUsada;
+      vecesRecomend++;
+      await Consulta(`UPDATE trecomendacion SET vecesUsada = ${vecesRecomend} WHERE idRecomendacion = ${Recomendaciones[j].idRecomendacion};`);
+  }
+
+  // await Consulta('DELETE FROM tnotificaciones WHERE (id_user_emisor = '+id_usuario_asignador+' && id_user_receptor = '+req.user.id_persona+');');
+  req.flash('messages', 'Se ha finalizado esta orden');
+  console.log('FIN CAJERO SUBMIT______________________________________________________________________________________________');
+  res.redirect('/profile');
+  next();
 });
 
 router.get('/detalle-pedido-facturacion', isLoggedIn, async(req, res) => {
@@ -964,6 +986,11 @@ router.get('/detalle-pedido-facturacion', isLoggedIn, async(req, res) => {
     const query_id_detalle_pedido_caja = `CALL SP_GET_idDetalle_Pedido_caja(${id_receptor});`;
     const consulta_id_detalle_pedido_caja = await Consulta(query_id_detalle_pedido_caja);
 
+    const queryDetallePedido = `SELECT * FROM v_detallepedido WHERE id_detallePedido = ${idDetallePedido}`;
+    const resDetallePedido = await Consulta(queryDetallePedido);
+    const detallePedido = resDetallePedido;
+
+
     console.log('Mi id:', id_receptor, ' tiene ', consulta_id_detalle_pedido_caja);
 
     // SOLAMENTE QUIERO VER LA INFORMACION DEL PEDIDO CON ESTE ID_DETALLE_PEDIDO
@@ -972,7 +999,7 @@ router.get('/detalle-pedido-facturacion', isLoggedIn, async(req, res) => {
     console.log('Respuesta:', consultaDetallePedidoTerminado[0]);
 
     const Detalle_Pedido = consultaDetallePedidoTerminado[0];
-    const data = { InfoUser, Detalle_Pedido, idDNotificacion };
+    const data = { InfoUser, Detalle_Pedido, detallePedido, idDNotificacion };
     console.log('Detalle_Pedido.length =>', Detalle_Pedido.length);
 
     res.render('Detalle_Facturacion', { data: data });

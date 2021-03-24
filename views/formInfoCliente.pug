@@ -108,6 +108,7 @@ prepend area-scripts
           "columns": [
               null,
               null,
+              null,
               {
                 "render": function(data, type, row){
                 return data.split("+").join("<br/>");
@@ -945,6 +946,7 @@ block contenido
                         //th.th-sm Marca
                         th.th-sm Km Inicial
                         th.th-sm Requerimiento (obs cliente)
+                        th.th-sm Recomendacion
                         //th.th-sm Detalle de Cliente
                         th.th-sm Detalle de Recepcion
                         //th.th-sm Nombre Usuario
@@ -955,28 +957,45 @@ block contenido
                       - var i = 0;
                       each val in data.info_servicios.historial_servicios
                         tr
-                          td #{data.info_servicios.historial_servicios[i].nro_orden}
+                          td
+                            .d-flex.flex-column.bd-highlight
+                              .bd-highlight.font-weight-bold #{data.info_servicios.historial_servicios[i].nro_orden}
+                              if data.info_servicios.historial_servicios[i].id_estadoOrden == 7
+                                .bd-highlight.text-primary.font-weight-bold #{data.info_servicios.historial_servicios[i].nombreEstadoOrden}...
+                              else
+                                .bd-highlight.text-danger.font-weight-bold #{data.info_servicios.historial_servicios[i].nombreEstadoOrden}
                           //-//td
                           //-  a.font-weight-bold.text-uppercase(href='/info-cliente?id_vehiculo='+data.historial_servicios[i].id_vehiculo+'&placa='+data.historial_servicios[i].placa+'') #{data.historial_servicios[i].placa}
                           //-  input(id='id_vehiculo_'+i type="hidden" value= 'data.historial_servicios[i].id_vehiculo') 
                           //-//td #{data.historial_servicios[i].vehiculo_marca}
                           td #{data.info_servicios.historial_servicios[i].km_inicial} km
-
                           td
+                            // .bd-highlight.font-weight-bold #{data.info_servicios.historial_servicios[i].nombre_servicio[0]}
                             //.d-flex.justify-content-start
                             .d-flex.flex-column.bd-highlight
-                              .bd-highlight.font-weight-bold #{data.info_servicios.historial_servicios[i].nombre_servicio}
-                              .bd-highlight.text-primary.font-weight-bold "#{data.info_servicios.historial_servicios[i].descripcion_cliente}"
-                              //strong.text-body #{data.info_servicios.historial_servicios[i].nombre_servicio}+strong.text-primary.ml-1 "#{data.info_servicios.historial_servicios[i].descripcion_cliente}"
-                              //strong.text-primary.ml-1 "#{data.info_servicios.historial_servicios[i].descripcion_cliente}"
+                              - var n = 0;
+                              each valo in data.info_servicios.historialPedido[i].nombre_servicio
+                                .bd-highlight.font-weight-bold #{data.info_servicios.historial_servicios[i].nombre_servicio[n]}
+                                .bd-highlight.text-primary.font-weight-bold &nbsp - #{data.info_servicios.historial_servicios[i].descripcion_cliente[n]}
+                                //strong.text-body #{data.info_servicios.historial_servicios[i].nombre_servicio}+strong.text-primary.ml-1 "#{data.info_servicios.historial_servicios[i].descripcion_cliente}"
+                                //strong.text-primary.ml-1 "#{data.info_servicios.historial_servicios[i].descripcion_cliente}"
+                                - n++
+                          td
+                            .d-flex.flex-column.bd-highlight
+                              - var r = 0;
+                              each valor in data.info_servicios.historial_servicios[i].nombreRecomendacion
+                                .bd-highlight.font-weight-bold #{data.info_servicios.historial_servicios[i].nombreRecomendacion[r]}
+                                .bd-highlight.text-success.font-weight-bold &nbsp - #{data.info_servicios.historial_servicios[i].descripcionRecomendacion[r]}
+                                - r++
                           td #{data.info_servicios.historial_servicios[i].Detalle_usuario}
                           //td #{data.historial_servicios[i].nombre_cliente}
                           td #{data.info_servicios.Tiempo_Inicio[i]}
                           td #{data.info_servicios.Tiempo_Inicio_corto[i].fecha} #{data.info_servicios.Tiempo_Inicio_corto[i].hora}
-                          if data.info_servicios.historial_servicios[i].Detalle_requerimiento == null
-                            td.text-danger Hace falta los requerimientos
-                          else
-                            td #{data.info_servicios.historial_servicios[i].Detalle_requerimiento}
+                          td
+                            if data.info_servicios.historial_servicios[i].Detalle_requerimiento == null
+                              .text-danger Hace falta los requerimientos
+                            else
+                              .div #{data.info_servicios.historial_servicios[i].Detalle_requerimiento}
                         - i++
                     tfoot
                       tr
@@ -985,6 +1004,7 @@ block contenido
                         //th Marca
                         th Km Inicial
                         th Requerimiento (obs cliente)
+                        th Recomendacion
                         //th Detalle de Cliente
                         th Detalle de Recepcion
                         //th Nombre Usuario

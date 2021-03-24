@@ -101,8 +101,8 @@ block contenido
                                                 .row.text-left.px-2
                                                     p6.text-justify.font-weight-light #{pObs_Client}
                                 - let i = 0;
-                                each val in data.Detalle_Pedido 
-                                    +Detalle_Pedido(data.Detalle_Pedido[i].nombre_servicio,data.Detalle_Pedido[i].descripcion_cliente,data.Detalle_Pedido[i].nombre_cliente)
+                                each val in data.detallePedido 
+                                    +Detalle_Pedido(data.detallePedido[i].nombre_servicio,data.detallePedido[i].descripcion_cliente,data.Detalle_Pedido[0].nombre_cliente)
                                     - i++
                 .card.rounded-0.mb-1 
                     .card-header.py-2.border-bottom-0
@@ -127,7 +127,7 @@ block contenido
                             textarea#misRequerimientos.md-textarea.form-control(name='mis_Observaciones' ,rows='9',style='overflow:auto' readonly) #{data.Detalle_Pedido[0].Detalle_requerimiento}
                             label(for='misObservaciones') Escribe los requerimientos
             .card-footer.py-2.d-flex.justify-content-center
-                button#btn_factuar_pedido.btn.btn-success.rounded-pill(type='submit') Facturar ya
+                button#btn_factuar_pedido.btn.btn-success.rounded-pill(type='submit') Cerrar Orden
                 input#id_detalle_pedido(type="hidden" value=data.Detalle_Pedido[0].id_detallePedido name='id_detalle_pedido')
                 input#id_Notificacion(type="hidden" value=data.idDNotificacion name='id_Notificacion')
                 input#id_vehiculo(type="hidden" value=data.Detalle_Pedido[0].id_vehiculo name='id_vehiculo')
@@ -148,7 +148,8 @@ block area-scripts
                     id_vehiculo:id_vehiculo,
                     id_detalle_pedido:id_detalle_pedido,
                 };
-                sk_Navigation.emit('Registrar_Seguimiento',info_seguimiento)
+                // COMENTADO PARA ANULACION DE SEGUIMIENTOS
+                // sk_Navigation.emit('Registrar_Seguimiento',info_seguimiento)
             })
             //let sk_detallePedido = io();
             //const Detalle_Pedido    = !{JSON.stringify(Detalle_Pedido)},

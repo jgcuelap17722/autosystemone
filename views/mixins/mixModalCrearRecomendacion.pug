@@ -1,0 +1,25 @@
+mixin#modalCrearRecomendacion.modal.fade(tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true")
+  .modal-dialog.modal-notify.modal-primary.rounded(role="document")
+    // Content
+    .modal-content
+      // Header
+      .modal-header.d-flex.justify-content-center
+        p.heading Crear o Busca una Recomendacion !
+        button.close(type="button" data-dismiss="modal" aria-label="Close")
+          span.white-text(aria-hidden="true") ×
+      // Body
+      .modal-body
+        p Introduce la Recomendacion
+        .form-row
+          .form-group.col-12
+            section.form-gradient
+              .md-form.mb-1.mt-0
+                .d-flex.bd-highlight
+                  .flex-fill.bd-highlight
+                    input#idBusquedaRecomendacion.form-control(type='text', autocomplete='off')
+                    label#lbBusquedaRecomendacion(for='idBusqueda') Buscar Recomendación
+                  .m-auto.bg-transparent
+                    i#iconBusquedaRecomendacion.fas.fa-search.m-2
+      .modal-footer.d-flex
+        button#btnCancelarRecomendacion.btn.btn-outline-primary.waves-effect.rounded.rounded-pill(type="button" data-dismiss="modal") Cancelar
+        button#btnCrearRecomendacion.btn.btn-primary.rounded.rounded-pill.ml-auto(type="button") Crear
