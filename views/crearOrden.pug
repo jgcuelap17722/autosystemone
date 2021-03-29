@@ -69,8 +69,8 @@ prepend area-scripts
         let i = nombreRecomendacionMU.indexOf(this.value);
         // console.log(idRecomendacionMU);
         // console.log("id de marca",idService[i]); //Ver id seleccionado de marca
-        Crear_Nombre_Orden(this.value,idService[i], 'recomendacionNueva', 'Recomendacion', 'Observaciones de Recomendación');
-        Estilo_input_AWSP(lb_busqueda,icon_busqueda,'#4f4f4f','remove');
+        Crear_Nombre_Orden(this.value,idRecomendacionMU[i], 'recomendacionNueva', 'Recomendacion', 'Observaciones de Recomendación');
+        Estilo_input_AWSP(lbBusquedaRecomendacion,iconBusquedaRecomendacion,'#4f4f4f','remove');
         $('#idBusquedaRecomendacion').val('');
         $('#idBusquedaRecomendacion').blur(); //desenfocar para desactivar esos efectos
         $('#modalCrearRecomendacion').modal('toggle');
