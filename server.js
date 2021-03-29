@@ -510,7 +510,7 @@ io.on('connection', (sk_Navigation) => {
     if (idEstadoOrden !== 4) {
       console.log('EL ESTADO ES ', idEstadoOrden);
     } else {
-      let query_id_notificacion = `CALL SP_FN_Enviar_Notificacion(${ data_idUsuario_emisor},${data_idUsuario_receptor},"${dHoy.d_str}")`;
+      let query_id_notificacion = `CALL SP_FN_Enviar_Notificacion(${data_idUsuario_emisor},${data_idUsuario_receptor},"${dHoy.d_str}")`;
       const consulta_id_Notificacion = await Consulta(query_id_notificacion);
       const { id_Notificacion } = consulta_id_Notificacion[0][0];
       // CAPTURAR LOS DETALLES DEL USUARIO QUE ME ESTA ENVIANDO ESTA NOTIFICACION
@@ -573,8 +573,8 @@ io.on('connection', (sk_Navigation) => {
     data_idUsuario_receptor = consulta_id_caja[0].id_usuario;
     // sacamos el usuaro de caja solo el primer resultado
 
-    // SABER CON QUE TIPO USUARIO ESTOY 
-    let query_id_tipo_usuario = 'SELECT id_tipo_usuario FROM tusuario_ttipousuario WHERE id_usuario = ' + data_idUsuario_receptor + ';';
+    // SABER CON QUE TIPO USUARIO ESTOY
+    let query_id_tipo_usuario = `SELECT id_tipo_usuario FROM tusuario_ttipousuario WHERE id_usuario = ${data_idUsuario_receptor};`;
     let consulta_idTipo_usuario = await Consulta(query_id_tipo_usuario);
 
     console.log('consulta_idTipo_usuario', consulta_idTipo_usuario[0]);
@@ -585,7 +585,7 @@ io.on('connection', (sk_Navigation) => {
     console.log('data_idUsuario_emisor', data_idUsuario_emisor);
 
     // RECUPERAR EL ID DE NOTIFICACION VINCULADA A ESTE EMISOR(MECANICO) Y RECEPTOR(CAJA)
-    let query_id_notificacion = 'CALL SP_FN_Enviar_Notificacion(' + data_idUsuario_emisor + ',' + data_idUsuario_receptor + ',"'+dHoy.d_str+'")';
+    let query_id_notificacion = `CALL SP_FN_Enviar_Notificacion(${data_idUsuario_emisor},${data_idUsuario_receptor},"${dHoy.d_str}")`;
     const consulta_id_Notificacion = await coneccion.query(query_id_notificacion);
     const { id_Notificacion } = consulta_id_Notificacion[0][0];
 
