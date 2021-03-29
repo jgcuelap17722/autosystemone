@@ -82,7 +82,7 @@ prepend area-scripts
         if(valor.length <= 0){
           alert('Es necesario el nombre de la recomendcion');
         }else{
-          const id = "#{data.InfoUser.id_usuario}";
+          const id = `${data.InfoUser.id_usuario}`;
           const nombreRecomendacion = $('#idBusquedaRecomendacion').val().toUpperCase();
           //console.log('enviar'+Nombre_Servicio+' y '+id_person)
           const nuevaRecomendacion = {id, nombreRecomendacion}
