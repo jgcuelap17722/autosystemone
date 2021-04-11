@@ -1,69 +1,90 @@
 extends partials/messages.pug
 prepend head
-    link(href="lib/MDBootstrap 4.8.7/css/addons/datatables.min.css" rel="stylesheet")
+  link(href="lib/MDBootstrap 4.8.7/css/addons/datatables.min.css" rel="stylesheet")
+  link(href="https://cdn.datatables.net/responsive/2.2.7/css/responsive.dataTables.min.css" rel="stylesheet")
 append area-librerias-scripts
-    script(type="text/javascript" src="lib/MDBootstrap 4.8.7/js/addons/datatables.min.js")
+  script(type="text/javascript" src="lib/MDBootstrap 4.8.7/js/addons/datatables.min.js")  
+  // script(type="text/javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js")  
+  script(type="text/javascript" src="https://cdn.datatables.net/responsive/1.0.7/js/dataTables.responsive.min.js")  
 prepend area-scripts
-    script.
-        $(document).ready(function(){
-            const tabla = $('#dtBasicExample').DataTable({
-                "scrollX": true,
-                "order": [[ 0, "desc" ]]
-            });
-            (function($){
-                $.fn.datepicker.dates['es'] = {
-                    days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
-                    daysShort: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
-                    daysMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
-                    months: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
-                    monthsShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
-                    today: "Hoy",
-                    monthsTitle: "Meses",
-                    clear: "Borrar",
-                    weekStart: 1,
-                    format: "dd/mm/yyyy"
-                };
-            }(jQuery));
+  script.
+    $(document).ready(function(){
+      const tabla = $('#dtBasicExample').DataTable({
+        "scrollX": true,
+        "order": [[ 0, "desc" ]],
+        "columns": [
+          null,
+          null,
+          null,
+          {
+            data: "Km Inicial",
+            render: $.fn.dataTable.render.number( ',', '','', '',' km' )
+          },
+          null,
+          // null,
+          null,
+          null,
+        ],
+        "initComplete": function() {
+          $("#dtBasicExample").show();
+          $("#CargandoTabla").hide();
+          // alert( 'DataTables has finished its initialisation.' );
+        }
+      });
 
+      (function($){
+        $.fn.datepicker.dates['es'] = {
+          days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+          daysShort: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+          daysMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+          months: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+          monthsShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+          today: "Hoy",
+          monthsTitle: "Meses",
+          clear: "Borrar",
+          weekStart: 1,
+          format: "dd/mm/yyyy"
+        };
+      }(jQuery));
 
-            $('#min,#max').datepicker({
-                autoclose: true,
-                beforeShowDay: $.noop,
-                calendarWeeks: false,
-                clearBtn: false,
-                daysOfWeekDisabled: [],
-                endDate: Infinity,
-                forceParse: true,
-                format: 'dd/mm/yyyy',
-                keyboardNavigation: true,
-                language: 'es',
-                minViewMode: 0,
-                orientation: "auto",
-                rtl: false,
-                startDate: -Infinity,
-                //startView: 2,
-                todayBtn: true,
-                todayHighlight: true,
-                weekStart: 0
-            }).on('changeDate', function() {
-                tabla.draw()
-            });
+      $('#min,#max').datepicker({
+        autoclose: true,
+        beforeShowDay: $.noop,
+        calendarWeeks: false,
+        clearBtn: false,
+        daysOfWeekDisabled: [],
+        endDate: Infinity,
+        forceParse: true,
+        format: 'dd/mm/yyyy',
+        keyboardNavigation: true,
+        language: 'es',
+        minViewMode: 0,
+        orientation: "auto",
+        rtl: false,
+        startDate: -Infinity,
+        //startView: 2,
+        todayBtn: true,
+        todayHighlight: true,
+        weekStart: 0
+      }).on('changeDate', function() {
+          tabla.draw()
+      });
 
-            $.fn.dataTable.ext.search.push(
-                function (settings, data, dataIndex) {
-                var min = $('#min').datepicker("getDate");
-                var max = $('#max').datepicker("getDate");
-                var startDate = new Date(data[10]);
-                if (min == null && max == null) { return true; }
-                if (min == null && startDate <= max) { return true;}
-                if(max == null && startDate >= min) {return true;}
-                if (startDate <= max && startDate >= min) { return true; }
-                return false;
-            });
-
-        })
+      $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+        var min = $('#min').datepicker("getDate");
+        var max = $('#max').datepicker("getDate");
+        var startDate = new Date(data[5]);
+        if (min == null && max == null) { return true; }
+        if (min == null && startDate <= max) { return true;}
+        if(max == null && startDate >= min) {return true;}
+        if (startDate <= max && startDate >= min) { return true; }
+        return false;
+      });
+    })
 append styles
     style.
+        #dtBasicExample2 { display: none;}
         .dtBasicExample {
             max-width: 600px;
             margin: 0 auto;
@@ -116,10 +137,16 @@ block contenido
                     input#min.form-control.dpick(type="text" placeholder="Dia/Mes/Año")
                     .input-group-addon.m-2 Hasta
                     input#max.form-control.dpick(type="text" placeholder="Dia/Mes/Año")
-                table#dtBasicExample.table.table-striped.table-bordered.table-sm(cellspacing="0" width="100%")
+                // table#dtBasicExample.table.table-striped.table-bordered.table-sm.row-border(cellspacing="0" width="100%")
+                
+                #CargandoTabla
+                  .d-flex.justify-content-center
+                    .spinner-border.text-danger(role='status')
+                      span.sr-only Loading...
+                table#dtBasicExample.table.table-striped.row-border.hover.table-sm.responsive.nowrap.compact(cellspacing="0" width="100%")
                     thead
                         tr
-                            th.th-sm Orden
+                            th.th-sm #
                             th.th-sm Placa
                             th.th-sm Vehiculo
                             th.th-sm Km Inicial
@@ -127,7 +154,7 @@ block contenido
                             // th.th-sm Detalle de Cliente
                             // th.th-sm Detalle de Recepcion
                             th.th-sm Nombre Cliente
-                            th.th-sm Celular
+                            // th.th-sm Celular
                             // th.th-sm Antiguedad de Visita
                             th.th-sm Fecha
                             th.th-sm Detalle Requerimiento
@@ -136,6 +163,11 @@ block contenido
                         each val in data.historial
                             tr
                                 td #{data.historial[i].nro_orden}
+                                // td
+                                //   .d-flex.flex-column.bd-highlight
+                                //     .bd-highlight #{data.historial[i].nro_orden}
+                                //     .bd-highlight
+                                //       .btn.btn-success.btn--sm hola
                                 td
                                     case data.historial[i].id_etapa_seguimiento
                                         when 1
@@ -150,15 +182,22 @@ block contenido
                                     input(id='id_vehiculo_'+i type="hidden" value= 'data.historial[i].id_vehiculo') 
                                 
                                 td 
-                                    .d-flex.justify-content-start
-                                        .text-body #{data.historial[i].vehiculo_marca}
-                                        .text-primary.ml-1 #{data.historial[i].modelo} 
-                                td #{data.historial[i].km_inicial} km
+                                  //.d-flex.justify-content-start
+                                  //  .text-body #{data.historial[i].vehiculo_marca}
+                                  //  .text-primary.ml-1 #{data.historial[i].modelo}
+                                  .d-flex.flex-column.bd-highlight
+                                    .bd-highlight.text-uppercase #{data.historial[i].vehiculo_marca}
+                                    .bd-highlight.text-primary.text-capitalize #{data.historial[i].modelo} , #{data.historial[i].anio}
+                                td #{data.historial[i].km_inicial}
                                 // td #{data.historial[i].nombre_servicio}
                                 // td #{data.historial[i].descripcion_cliente}
                                 // td #{data.historial[i].Detalle_usuario}
-                                td #{data.historial[i].nombre_cliente}
-                                td #{data.historial[i].telefono}
+                                td
+                                  .d-flex.flex-column.bd-highlight
+                                    .bd-highlight #{data.historial[i].nombre_cliente}
+                                    .bd-highlight.text-primary #{data.historial[i].telefono}
+                                // td #{data.historial[i].nombre_cliente}
+                                // td #{data.historial[i].telefono}
                                 // td #{data.Tiempo_Inicio[i]}
                                 // td #{data.Tiempo_Inicio_corto[i]}
                                 td
@@ -167,7 +206,7 @@ block contenido
                                   //    .bd-highlight.text-success.font-weight-bold #{data.Tiempo_Inicio[i]}
                                   .d-flex.justify-content-start
                                       .text-body #{data.Tiempo_Inicio_corto[i]}
-                                      .text-success.ml-1 (#{data.Tiempo_Inicio[i]})
+                                      //.text-success.ml-1 (#{data.Tiempo_Inicio[i]})
                                 if data.historial[i].Detalle_requerimiento == null
                                     td.text-danger Hace falta los requerimientos
                                 else
@@ -183,7 +222,8 @@ block contenido
                             // th Detalle de Cliente
                             // th Detalle de Recepcion
                             th Nombre Cliente
-                            th Celular
+                            // th Celular
                             // th Antiguedad de Visita
                             th Fecha
                             th Detalle Requerimiento
+                            

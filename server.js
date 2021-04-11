@@ -14,6 +14,7 @@ const MySQLStore   = require('express-mysql-session');
 const { CronJob }  = require('cron');
 const coneccion    = require('./database');
 const { database } = require('./keys');
+const { infoApp }  = require('./infoapp');
 const helpers      = require('./lib/helpers');
 
 // Funcion parahacer consultass
@@ -48,6 +49,10 @@ app.use(async (req, res, next) => {
   app.locals.messages = req.flash('messages');
   app.locals.confirmation = req.flash('confirmation');
   app.locals.user = req.user;
+  app.locals.nombreApp = infoApp.NombreApp;
+  app.locals.icoApp = infoApp.iconoApp;
+  app.locals.fondoApp = infoApp.FondoApp;
+
   // console.log('req.user =============> ',req.user)
   if (typeof req.user != 'undefined') {
     const GetUser = `SELECT * FROM v_tusuario_tpersona WHERE id_usuario = ${req.user.id_usuario};`;
@@ -641,7 +646,7 @@ io.on('connection', (sk_Navigation) => {
     console.log('Mi id: ', data_idUsuario_receptor, ' tiene: ', nro_Notificaciones, 'Notificaciones');
 
     // SABER CON QUE TIPO USUARIO ESTOY HACIENDO LA RECARGA DE PAGINA
-    let query_id_tipo_usuario = 'SELECT id_tipo_usuario FROM tusuario_ttipousuario WHERE id_usuario = ' + data_idUsuario_receptor + ';';
+    let query_id_tipo_usuario = `SELECT id_tipo_usuario FROM tusuario_ttipousuario WHERE id_usuario = ${data_idUsuario_receptor};`;
     let consulta_idTipo_usuario = await coneccion.query(query_id_tipo_usuario);
     let { id_tipo_usuario } = consulta_idTipo_usuario[0];
     // salida de esta consulta 
@@ -649,7 +654,7 @@ io.on('connection', (sk_Navigation) => {
 
     // SABER CUALES SON LOS IDS DE NOTIFICACION DE MI ID
     let consulta_id_notificacion = await coneccion.query(`SELECT id_notificaciones FROM tnotificaciones WHERE id_user_receptor = ${data_idUsuario_receptor} && id_estado_notificacion = 1`);
-    // salida de esta consulta 
+    // salida de esta consulta
     console.log('Mi id: ', data_idUsuario_receptor, ' tiene estos id de notificacion: ', consulta_id_notificacion);
 
     // VERIFICAR EL TIPO DE USUARIO QUE ESTA RECARGANDO LA PAGINA
@@ -678,7 +683,7 @@ io.on('connection', (sk_Navigation) => {
 
         for (let i = 0; i <= ids_detalle_pedido_caja.length - 1; i++) {
           id_Detalle_Pedidos[i] = ids_detalle_pedido_caja[i].idDetallePedido;
-          let query_info_Emisor = `CALL SP_Mis_facturaciones_asignadas (${id_Detalle_Pedidos[i]});`;
+          let query_info_Emisor = `CALL SP_Mis_facturaciones_asignadas(${id_Detalle_Pedidos[i]});`;
           let consulta_info_Emisor = await coneccion.query(query_info_Emisor);
           // console.log('Salida del boocle es ', consulta_info_Emisor[0][0].nro_orden);
           nro_orden[i] = consulta_info_Emisor[0][0].nro_orden;
@@ -713,53 +718,51 @@ io.on('connection', (sk_Navigation) => {
         console.log('Lista_De_Notificaciones', Lista_De_Notificaciones);
         sk_Navigation.emit('Envio_Notificacion', Lista_De_Notificaciones, nro_Notificaciones, nro_orden, id_tipo_usuario, ids_detalle_pedido, vehiculo);
       }
-    } else {
-      if (nro_Notificaciones != 0) {
-        console.log('consulta_id_notificacion', consulta_id_notificacion[0].id_notificaciones);
-        console.log('TAMAÑO', consulta_id_notificacion.length);
+    } else if (nro_Notificaciones != 0) {
+      console.log('consulta_id_notificacion', consulta_id_notificacion[0].id_notificaciones);
+      console.log('TAMAÑO', consulta_id_notificacion.length);
 
-        // let Emisor_nombre=[],Emisor_apellido_paterno=[],Emisor_fecha_creacion=[];
+      // let Emisor_nombre=[],Emisor_apellido_paterno=[],Emisor_fecha_creacion=[];
 
-        // Saber que nro de orden te ASIGNARON 
+      // Saber que nro de orden te ASIGNARON
 
-        // const query_nro_orden = `SELECT id_detallePedido,nro_orden FROM tdetallepedido where id_estadoOrden = 4 && id_usuario_asignado = '+data_idUsuario_receptor+';`;
-        // let id_etapa_pedido = 4;
-        const query_nro_orden = `CALL SP_GET_Info_Notificacion(`+data_idUsuario_receptor+`);`;
+      // const query_nro_orden = `SELECT id_detallePedido,nro_orden FROM tdetallepedido where id_estadoOrden = 4 && id_usuario_asignado = '+data_idUsuario_receptor+';`;
+      // let id_etapa_pedido = 4;
+      const query_nro_orden = `CALL SP_GET_Info_Notificacion(${data_idUsuario_receptor});`;
 
-        const consulta_nro_orden = await coneccion.query(query_nro_orden);
-        // const {nro_orden,id_detallePedido} = consulta_nro_orden[0];
-        const Nro_orden = consulta_nro_orden[0];
+      const consulta_nro_orden = await coneccion.query(query_nro_orden);
+      // const {nro_orden,id_detallePedido} = consulta_nro_orden[0];
+      const Nro_orden = consulta_nro_orden[0];
 
-        console.log('Salida ==> ', consulta_nro_orden[0]);
+      console.log('Salida ==> ', consulta_nro_orden[0]);
 
-        let n = 0;
-        Nro_orden.forEach(element => {
-          nro_orden[n] = element.nro_orden;
-          id_Detalle_Pedidos[n] = element.id_detallePedido;
-          vehiculo[n] = {
-            placa: Nro_orden[n].placa,
-            vehiculo_marca: Nro_orden[n].vehiculo_marca,
-            modelo: Nro_orden[n].modelo
-          };
-          n++;
-        });
+      let n = 0;
+      Nro_orden.forEach((element) => {
+        nro_orden[n] = element.nro_orden;
+        id_Detalle_Pedidos[n] = element.id_detallePedido;
+        vehiculo[n] = {
+          placa: Nro_orden[n].placa,
+          vehiculo_marca: Nro_orden[n].vehiculo_marca,
+          modelo: Nro_orden[n].modelo
+        };
+        n++;
+      });
 
-        console.log('vehiculo', vehiculo);
+      console.log('vehiculo', vehiculo);
 
-        for (let index = 0; index <= consulta_id_notificacion.length - 1; index++) {
-          let query_Detalle_Notificacion = 'CALL SP_Detalles_Notificacion(' + data_idUsuario_receptor + ',' + consulta_id_notificacion[index].id_notificaciones + ')';
-          let consulta_Detalles_Notificacion = await coneccion.query(query_Detalle_Notificacion);
-          console.log(consulta_Detalles_Notificacion[0][0]);
-          Emisor_nombre[index]            = consulta_Detalles_Notificacion[0][0].nombre;
-          Emisor_apellido_paterno[index]  = consulta_Detalles_Notificacion[0][0].apellido_paterno;
-          Emisor_fecha_creacion[index]    = helpers.timeago_int(consulta_Detalles_Notificacion[0][0].fecha_creacion);
-          ids_Notificaciones[index]       = consulta_id_notificacion[index].id_notificaciones;
-          // nro_orden[i] = consulta_Detalles_Notificacion[0][0].nro_orden;
-        }
-        console.log('Salida de Emisor Nombre', Emisor_nombre, Emisor_apellido_paterno, Emisor_fecha_creacion);
-        const Lista_De_Notificaciones = [Emisor_nombre, Emisor_apellido_paterno, Emisor_fecha_creacion, ids_Notificaciones];
-        sk_Navigation.emit('Envio_Notificacion', Lista_De_Notificaciones, nro_Notificaciones, nro_orden, id_tipo_usuario, id_Detalle_Pedidos, vehiculo);
+      for (let index = 0; index <= consulta_id_notificacion.length - 1; index++) {
+        let query_Detalle_Notificacion = 'CALL SP_Detalles_Notificacion(' + data_idUsuario_receptor + ',' + consulta_id_notificacion[index].id_notificaciones + ')';
+        let consulta_Detalles_Notificacion = await coneccion.query(query_Detalle_Notificacion);
+        console.log(consulta_Detalles_Notificacion[0][0]);
+        Emisor_nombre[index]            = consulta_Detalles_Notificacion[0][0].nombre;
+        Emisor_apellido_paterno[index]  = consulta_Detalles_Notificacion[0][0].apellido_paterno;
+        Emisor_fecha_creacion[index]    = helpers.timeago_int(consulta_Detalles_Notificacion[0][0].fecha_creacion);
+        ids_Notificaciones[index]       = consulta_id_notificacion[index].id_notificaciones;
+        // nro_orden[i] = consulta_Detalles_Notificacion[0][0].nro_orden;
       }
+      console.log('Salida de Emisor Nombre', Emisor_nombre, Emisor_apellido_paterno, Emisor_fecha_creacion);
+      const Lista_De_Notificaciones = [Emisor_nombre, Emisor_apellido_paterno, Emisor_fecha_creacion, ids_Notificaciones];
+      sk_Navigation.emit('Envio_Notificacion', Lista_De_Notificaciones, nro_Notificaciones, nro_orden, id_tipo_usuario, id_Detalle_Pedidos, vehiculo);
     }
   });
 

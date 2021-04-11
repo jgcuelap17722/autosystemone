@@ -16,6 +16,7 @@ const { Recuperar_info_Cliente } = require('../controllers/controlador.info-clie
 const { recuperarReporte_get } = require('../controllers/controlador.reportes');
 const { recuperarOrdenes_hoy_get } = require('../controllers/controlador.ordenes-hoy');
 const { getDatosOrdenesApi } = require('../controllers/controlador.api');
+const { getRecursosHumanos } = require('../controllers/controlador.admin');
 
 // Funcion parahacer consultass
 const Consulta = (pQuery) => pool.query(pQuery);
@@ -584,47 +585,47 @@ router.post('/cliente', (req) => {
 });
 
 router.get('/', isNotLoggedIn, (req, res) => {
-    try {
-        console.log('typeof req.user', typeof req.user);
-        if (typeof req.user !== 'undefined') {
-            res.redirect('/profile', { data: tiempo_es });
-        } else {
-            res.render('auth/signin');
-        }
-    } catch (error) {
+  try {
+    console.log('typeof req.user', typeof req.user);
+    if (typeof req.user !== 'undefined') {
+        res.redirect('/profile', { data: tiempo_es });
+    } else {
         res.render('auth/signin');
-        console.log(error);
     }
+  } catch (error) {
+    res.render('auth/signin');
+    console.log(error);
+  }
 });
 
 router.post('/', async(req, res) => {
-    const person_username = req.user.username;
-    const { password_old, password_new, password_confirm } = req.body;
-    console.log('Datass', password_old, password_new, password_confirm);
-    const Password = await Consulta(`SELECT password FROM tusuario WHERE username = "${person_username}";`);
-    const Existencia_Password = await helpers.matchPassword(password_old, Password[0].password);
+  const person_username = req.user.username;
+  const { password_old, password_new, password_confirm } = req.body;
+  console.log('Datass', password_old, password_new, password_confirm);
+  const Password = await Consulta(`SELECT password FROM tusuario WHERE username = "${person_username}";`);
+  const Existencia_Password = await helpers.matchPassword(password_old, Password[0].password);
 
     if (Existencia_Password) {
-        if (password_new == password_confirm) {
-            const encript_password_new = await helpers.encryptPassword(password_confirm);
+      if (password_new == password_confirm) {
+          const encript_password_new = await helpers.encryptPassword(password_confirm);
 
-            await Consulta(`UPDATE tusuario SET password ="${encript_password_new}" WHERE username = "${person_username}"`);
+          await Consulta(`UPDATE tusuario SET password ="${encript_password_new}" WHERE username = "${person_username}"`);
 
-            // Enviar a email Su nueva contraseña
-            const Email_Usuario = await Consulta(`SELECT email FROM v_tusuario_tpersona WHERE username = "${person_username}";`);
-            console.log('EMAIL,', Email_Usuario);
-            const cuerpoMensage = `<ul>\
-          <li><b>Usuario:</b>${person_username}</li>\
-          <li><b>Nueva contraseña:</b>${password_confirm}</li>\
-          </ul>`;
-            helpers.EnviarMensage(Email_Usuario[0].email, 'Actualizacion de contraseña', cuerpoMensage);
+          // Enviar a email Su nueva contraseña
+          const Email_Usuario = await Consulta(`SELECT email FROM v_tusuario_tpersona WHERE username = "${person_username}";`);
+          console.log('EMAIL,', Email_Usuario);
+          const cuerpoMensage = `<ul>\
+        <li><b>Usuario:</b>${person_username}</li>\
+        <li><b>Nueva contraseña:</b>${password_confirm}</li>\
+        </ul>`;
+          helpers.EnviarMensage(Email_Usuario[0].email, 'Actualizacion de contraseña', cuerpoMensage);
 
-            req.flash('confirmation', 'La contraseña se actualizo correctamente');
-            res.redirect('/');
-        } else {
-            req.flash('confirmation', 'Las contraseña no coinciden');
-            res.redirect('/edit-password');
-        }
+          req.flash('confirmation', 'La contraseña se actualizo correctamente');
+          res.redirect('/');
+      } else {
+          req.flash('confirmation', 'Las contraseña no coinciden');
+          res.redirect('/edit-password');
+      }
     } else {
         req.flash('confirmation', 'La contraseña antigua no existe');
         res.redirect('/edit-password');
@@ -632,8 +633,8 @@ router.post('/', async(req, res) => {
 });
 
 router.get('/nueva-orden', isLoggedIn, (req, res) => {
-    // res.rendesr("loggin");
-    res.render("nuevo");
+  // res.rendesr("loggin");
+  res.render("nuevo");
 });
 
 router.get('/listar/delete/:id', async(req, res) => {
@@ -799,119 +800,121 @@ router.get('/edit-password', isLoggedIn, async(req, res) => {
 });
 
 router.post('/registro-completo', isLoggedIn, async(req, res, next) => {
-    const InfoUser = await helpers.InfoUser(req.user.id_usuario); // Info Usuario Logueado
-    const {
-        tipo_usuario,
-        nombre,
-        apellido_paterno,
-        apellido_materno,
-        telefono,
-        dni,
-        direccion,
-        sexo,
-        edad,
-        email
-    } = req.body;
+  const InfoUser = await helpers.InfoUser(req.user.id_usuario); // Info Usuario Logueado
+  const {
+    tipo_usuario,
+    nombre,
+    apellido_paterno,
+    apellido_materno,
+    telefono,
+    dni,
+    direccion,
+    sexo,
+    edad,
+    email
+  } = req.body;
 
-    // Datos para TUsuario
-    const Username = await helpers.GenerarUsername(email);
-    const Password = await helpers.GenerarPassword();
-    const password_ecript = await helpers.encryptPassword(Password);
-    const query = `CALL SP_Crear_Nuevo_Usuario2(${tipo_usuario},"${nombre}","${apellido_paterno}","${apellido_materno}","${telefono}",\
-  ${dni},"${direccion}","${sexo}",${edad},"${email}","${Username}","${password_ecript}")`;
-    console.log('query', query);
+  // Datos para TUsuario
+  const Username = await helpers.GenerarUsername(email);
+  // const Password = await helpers.GenerarPassword();
+  const Password = `12345`;
+  const password_ecript = await helpers.encryptPassword(Password);
+  const query = `CALL SP_Crear_Nuevo_Usuario2(${tipo_usuario},"${nombre}","${apellido_paterno}","${apellido_materno}","${telefono}",
+${dni},"${direccion}","${sexo}",${edad},"${email}","${Username}","${password_ecript}")`;
+  await Consulta(query);
+  console.log('query', query);
+// ACTIVAR ENVIO DE MENSAGE DE USUARIO Y CONTRACEÑA
+/*   try {
+      await Consulta(query);
+      console.log('pasword_encriptado', password_ecript);
 
-    try {
-        await Consulta(query);
-        console.log('pasword_encriptado', password_ecript);
+      console.log('Username:', Username);
+      console.log('Password', Password);
 
-        console.log('Username:', Username);
-        console.log('Password', Password);
-
-        const cuerpoMensage = `<ul>\
-    <li><b>Usuario:</b>${Username}</li>\
-    <li><b>Password:</b>${Password}</li>\
-    <li>List item</li>\
-    <li>List item</li>\
-  </ul>`;
-        await helpers.EnviarMensage(`${email}`, 'UN MENSAGE NUEVO', cuerpoMensage);
-        console.log('req.body', req.body);
-    } catch (error) {
-        console.log('error: ', error);
-    }
-    req.flash('messages', 'Se ha registrado correctamente el Usuario');
-    const data = { InfoUser };
-    res.render('FormExito_registro', { data: data });
-    next();
+      const cuerpoMensage = `<ul>\
+  <li><b>Usuario:</b>${Username}</li>\
+  <li><b>Password:</b>${Password}</li>\
+  <li>List item</li>\
+  <li>List item</li>\
+</ul>`;
+      await helpers.EnviarMensage(`${email}`, 'UN MENSAGE NUEVO', cuerpoMensage);
+      console.log('req.body', req.body);
+  } catch (error) {
+      console.log('error: ', error);
+  } */
+  req.flash('messages', 'Se ha registrado correctamente el Usuario');
+  const data = { InfoUser };
+  res.render('FormExito_registro', { data: data });
+  next();
 });
 
 router.post('/detalle-pedido', isLoggedIn, async(req, res) => {
-    const { id_detalle_pedido, mis_Observaciones } = req.body;
+  const { id_detalle_pedido, mis_Observaciones } = req.body;
 
-    console.log('mis_Observaciones', req.body);
-    await Consulta(`UPDATE tdetallepedido SET Detalle_requerimiento = "${mis_Observaciones}" WHERE (id_detallePedido = ${id_detalle_pedido});`);
+  console.log('mis_Observaciones', req.body);
+  await Consulta(`UPDATE tdetallepedido SET Detalle_requerimiento = "${mis_Observaciones}" WHERE (id_detallePedido = ${id_detalle_pedido});`);
 
-    // SELECCIONARA EL ID DE CAJA RANDOM XD soi telible
-    const consulta_id_caja = await Consulta('SELECT id_usuario FROM v_cajeros_habilitados ORDER BY RAND() limit 1;');
-    const { id_usuario } = consulta_id_caja[0];
+  // SELECCIONARA EL ID DE CAJA RANDOM XD soi telible
+  const consulta_id_caja = await Consulta('SELECT id_usuario FROM v_cajeros_habilitados ORDER BY RAND() limit 1;');
+  const { id_usuario } = consulta_id_caja[0];
 
-    // INGRESAMOS UN NUEVO DETALLE PEDIDO PARA FACTURACION
+  // INGRESAMOS UN NUEVO DETALLE PEDIDO PARA FACTURACION
 
-    await Consulta(`CALL SP_ADD_Detalle_Facturacion(${id_usuario},${id_detalle_pedido});`);
-    req.flash('messages', 'Se ha enviado a facturar esta orden con exito');
-    res.redirect('/profile');
+  await Consulta(`CALL SP_ADD_Detalle_Facturacion(${id_usuario},${id_detalle_pedido});`);
+  req.flash('messages', 'Se ha enviado a facturar esta orden con exito');
+  res.redirect('/profile');
 });
 
 router.get('/detalle-pedido', isLoggedIn, async(req, res) => {
-    // === === === ESTA RUTA SOLO SERA PARA EL MECANICO :( === === ===
+  // === === === ESTA RUTA SOLO SERA PARA EL MECANICO :( === === ===
 
-    // RECIBIMOS LAS VARIABLES POR LA DIRECCION URL
-    // El id_receptor = yo / El idDetallePedido = al que me asignaron.
-    const InfoUser = await helpers.InfoUser(req.user.id_usuario);
-    console.log('req.query', req.query);
-    console.log('InfoUser', InfoUser);
-    const { id_receptor, idDetallePedido, idDNotificacion } = req.query;
+  // RECIBIMOS LAS VARIABLES POR LA DIRECCION URL
+  // El id_receptor = yo / El idDetallePedido = al que me asignaron.
+  const InfoUser = await helpers.InfoUser(req.user.id_usuario);
+  console.log('req.query', req.query);
+  console.log('InfoUser', InfoUser);
+  const { id_receptor, idDetallePedido, idDNotificacion } = req.query;
 
-    const consultaVerificacion = await Consulta(`SELECT id_tipo_usuario FROM tusuario_ttipousuario WHERE id_usuario = ${id_receptor};`);
-    const { id_tipo_usuario } = consultaVerificacion[0];
+  const consultaVerificacion = await Consulta(`SELECT id_tipo_usuario FROM tusuario_ttipousuario WHERE id_usuario = ${id_receptor};`);
+  const { id_tipo_usuario } = consultaVerificacion[0];
 
-    console.log('idTipo_usuario => ', id_tipo_usuario);
-    /*   const query_Detalle_mis_pedidos_asignados = `CALL SP_Mis_pedidos_asignados(${id_receptor})`;
-      const consulta_Detalle_mis_pedidos_asignados = await Consulta(query_Detalle_mis_pedidos_asignados);
-      console.log('consulta_Detalle_mis_pedidos_asignados:', consulta_Detalle_mis_pedidos_asignados[0], 'para mi id: ', id_receptor); */
+  console.log('idTipo_usuario => ', id_tipo_usuario);
+  /*   const query_Detalle_mis_pedidos_asignados = `CALL SP_Mis_pedidos_asignados(${id_receptor})`;
+    const consulta_Detalle_mis_pedidos_asignados = await Consulta(query_Detalle_mis_pedidos_asignados);
+    console.log('consulta_Detalle_mis_pedidos_asignados:', consulta_Detalle_mis_pedidos_asignados[0], 'para mi id: ', id_receptor); */
 
-    // SOLAMENTE QUIERO VER LA INFORMACION DEL PEDIDO CON ESTE ID_DETALLE_PEDIDO
+  // SOLAMENTE QUIERO VER LA INFORMACION DEL PEDIDO CON ESTE ID_DETALLE_PEDIDO
 
-    const queryDetallePedido = `SELECT * FROM v_detallepedido WHERE id_detallePedido = ${idDetallePedido}`;
-    const resDetallePedido = await Consulta(queryDetallePedido);
-    
-    const queryDetalleRecomendación = `SELECT * FROM v_detallerecomendacion WHERE idDetallePedido = ${idDetallePedido}`;
-    const resDetalleRecomendación = await Consulta(queryDetalleRecomendación);
-    
-    const queryDetallePedidoTerminado = `CALL SP_Mis_facturaciones_asignadas(${idDetallePedido})`;
-    const consultaDetallePedidoTerminado = await Consulta(queryDetallePedidoTerminado);
-    
-    const detallePedido = resDetallePedido;
-    const detalleRecomendación = resDetalleRecomendación;
-    
-    console.log('Respuesta detalle-pedido:', consultaDetallePedidoTerminado[0]);
+  const queryDetallePedido = `SELECT * FROM v_detallepedido WHERE id_detallePedido = ${idDetallePedido}`;
+  const resDetallePedido = await Consulta(queryDetallePedido);
+  
+  const queryDetalleRecomendación = `SELECT * FROM v_detallerecomendacion WHERE idDetallePedido = ${idDetallePedido}`;
+  const resDetalleRecomendación = await Consulta(queryDetalleRecomendación);
+  
+  const queryDetallePedidoTerminado = `CALL SP_Mis_facturaciones_asignadas(${idDetallePedido})`;
+  const consultaDetallePedidoTerminado = await Consulta(queryDetallePedidoTerminado);
+  
+  const detallePedido = resDetallePedido;
+  const detalleRecomendación = resDetalleRecomendación;
+  
+  console.log('Respuesta detalle-pedido:', consultaDetallePedidoTerminado[0]);
 
-    const Detalle_Pedido = consultaDetallePedidoTerminado[0];
-    const data = {
-      InfoUser,
-      Detalle_Pedido,
-      detallePedido,
-      detalleRecomendación,
-      id_tipo_usuario,
-      idDNotificacion,
-      idDetallePedido
-    };
+  const Detalle_Pedido = consultaDetallePedidoTerminado[0];
+  const data = {
+    InfoUser,
+    Detalle_Pedido,
+    detallePedido,
+    detalleRecomendación,
+    id_tipo_usuario,
+    idDNotificacion,
+    idDetallePedido
+  };
 
-    console.log('informacion pedido', data);
-    console.log('Detalle_Pedido.length =>', Detalle_Pedido.length);
-    // REnderizamos enviando los datos
-    res.render('Detalle_Pedido', { data: data });
-    // }
+  console.log('informacion pedido', data);
+  console.log('Detalle_Pedido.length =>', Detalle_Pedido.length);
+  // REnderizamos enviando los datos
+  res.render('Detalle_Pedido', { data: data });
+  // }
 });
 
 router.post('/detalle-pedido-facturacion', isLoggedIn, async(req, res, next) => {
@@ -921,9 +924,9 @@ router.post('/detalle-pedido-facturacion', isLoggedIn, async(req, res, next) => 
   console.log('INICIO CAJERO SUBMIT______________________________________________________________________________________________');
 
   // SABER LA FECHA DE INICIO Y nro_orden de este id_detalle_pedido
-  const query_fecha_inicio = `SELECT fecha,nro_Orden FROM tdetallepedido where id_detallePedido = ${id_detalle_pedido};`;
+  const query_fecha_inicio = `SELECT fecha,nro_orden FROM tdetallepedido where id_detallePedido = ${id_detalle_pedido};`;
   const consulta_fecha_inicio = await Consulta(query_fecha_inicio);
-  const { fecha, nro_Orden } = consulta_fecha_inicio[0];
+  const { fecha, nro_orden } = consulta_fecha_inicio[0];
 
   // ordenamos la fecha para incertar en TABLA ORDENES GENERALES
   const date = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`;
@@ -932,14 +935,14 @@ router.post('/detalle-pedido-facturacion', isLoggedIn, async(req, res, next) => 
   let pFechaHoy = helpers.new_Date(new Date());
   pFechaHoy = helpers.formatDateTime(pFechaHoy);
   // la salida es esta
-  console.log('La Fecha de iniciacion es', dateTime, 'Y numero de orden es : ', nro_Orden);
+  console.log('La Fecha de iniciacion es', dateTime, 'Y numero de orden es : ', nro_orden);
 
   // CAMBIAR EL ESTADO DE ORDEN A 5 = finalizado DE ORDENES ACTUALES
-  await Consulta(`UPDATE tordenes_actuales SET id_estadoOrden = 5 WHERE (nro_orden = ${nro_Orden});`);
-  await Consulta(`UPDATE tdetallepedido SET id_estadoOrden = 5 WHERE (nro_orden = ${nro_Orden});`);
+  await Consulta(`UPDATE tordenes_actuales SET id_estadoOrden = 5 WHERE (nro_orden = ${nro_orden});`);
+  await Consulta(`UPDATE tdetallepedido SET id_estadoOrden = 5 WHERE (nro_orden = ${nro_orden});`);
 
   // INCERTANDO EN ORDENES GENERALES
-  await Consulta(`CALL SP_ADD_OrdenesGenerales(${nro_Orden},"${dateTime}","${pFechaHoy}",${id_detalle_pedido});`);
+  await Consulta(`CALL SP_ADD_OrdenesGenerales(${nro_orden},"${dateTime}","${pFechaHoy}",${id_detalle_pedido});`);
 
   // ACTUALIZAMOS EL DETALLE FACTURACION A 2 PARA SABER QUE SE HA FACTURADO
   await Consulta(`UPDATE tdetalle_facturacion SET id_estado_facturacion = 2 where (id_detalle_pedido = ${id_detalle_pedido});`);
@@ -947,27 +950,21 @@ router.post('/detalle-pedido-facturacion', isLoggedIn, async(req, res, next) => 
   // ELIMINAR ESTA NOTIFICACION DE PEDIDO QUE ME ENVIO EL ASIGNADOR
   await Consulta(`UPDATE tnotificaciones SET id_estado_notificacion = 2 where (id_notificaciones = ${id_Notificacion});`);
 
-  // ELIMINAR ESTA NOTIFICACION DE PEDIDO QUE ME ENVIO EL ASIGNADOR
   const consulta_IdServicios_Usados = await Consulta(`SELECT id_servicio FROM tpedido where (id_detallePedido = ${id_detalle_pedido});`);
   const id_servicio = consulta_IdServicios_Usados;
-  console.log('id_servicio', id_servicio);
 
   // RANKEAR LOS SERVICIOS QUE SE UTILIZARON
   for (let cont = 0; cont <= id_servicio.length - 1; cont++) {
-      const consulta_veces = await Consulta(`SELECT veces_usada FROM tservicios_generales WHERE id_servicios_generales = ${id_servicio[cont].id_servicio};`);
-      let veces = consulta_veces[0].veces_usada;
-      veces++;
-      await Consulta(`UPDATE tservicios_generales SET veces_usada = ${veces} WHERE id_servicios_generales = ${id_servicio[cont].id_servicio};`);
+    const qrySumarPedido = `UPDATE tservicios_generales SET veces_usada = veces_usada + 1 WHERE id_servicios_generales = ${id_servicio[cont].id_servicio};`;
+    await Consulta(qrySumarPedido);
   }
 
   const consultaRecomendaciones = await Consulta(`SELECT idRecomendacion FROM tpedidorecomendacion where (idDetallePedido = ${id_detalle_pedido});`);
   const Recomendaciones = consultaRecomendaciones;
 
   for (let j = 0; j <= Recomendaciones.length - 1; j++) {
-      const vecesRecomendado = await Consulta(`SELECT vecesUsada FROM trecomendacion WHERE idRecomendacion = ${Recomendaciones[j].idRecomendacion};`);
-      let vecesRecomend = vecesRecomendado[0].vecesUsada;
-      vecesRecomend++;
-      await Consulta(`UPDATE trecomendacion SET vecesUsada = ${vecesRecomend} WHERE idRecomendacion = ${Recomendaciones[j].idRecomendacion};`);
+    const qrySumarRecomendacion = `UPDATE trecomendacion SET vecesUsada = vecesUsada + 1 WHERE idRecomendacion = ${Recomendaciones[j].idRecomendacion};`;
+    await Consulta(qrySumarRecomendacion);
   }
 
   // await Consulta('DELETE FROM tnotificaciones WHERE (id_user_emisor = '+id_usuario_asignador+' && id_user_receptor = '+req.user.id_persona+');');
@@ -1060,26 +1057,31 @@ router.post('/pdfd', async(req, res) => {
 
 router.get('/historial', isLoggedIn, async(req, res) => {
     const InfoUser = await helpers.InfoUser(req.user.id_usuario); // Info Usuario Logueado
-    // const query_data_historial_resumen = 'SELECT * FROM v_historial_resumen;';
-    const query_data_historial_resumen = 'CALL SP_GET_Historial_Ultimos_Vehiculos();';
+    const query_data_historial_resumen = 'SELECT * FROM v_historial_resumen;';
+    // const query_data_historial_resumen = 'CALL SP_GET_Historial_Ultimos_Vehiculos();';
 
     const consulta_data_historial_resumen = await Consulta(query_data_historial_resumen);
-    const historial = consulta_data_historial_resumen[0];
+    const historial = consulta_data_historial_resumen;
 
     const Tiempo_Inicio = [];
     const Tiempo_Inicio_corto = [];
-    let n = 0;
-    historial.forEach(() => {
-        Tiempo_Inicio[n] = helpers.timeago_int(historial[n].fecha_iniciacion);
+    //let n = 0;
+
+    for (let n = 0; n <= historial.length-1; n++) {
+      Tiempo_Inicio_corto[n] = helpers.formatDate(historial[n].fecha_iniciacion);
+    }
+
+/*     historial.forEach(() => {
+        // Tiempo_Inicio[n] = helpers.timeago_int(historial[n].fecha_iniciacion);
         Tiempo_Inicio_corto[n] = helpers.formatDate(historial[n].fecha_iniciacion);
         n++;
-    });
+    }); */
     // console.log('Resumen de Historial',data);
     const data = {
-        historial,
-        Tiempo_Inicio,
-        Tiempo_Inicio_corto,
-        InfoUser
+      historial,
+      Tiempo_Inicio,
+      Tiempo_Inicio_corto,
+      InfoUser
     };
 
     res.render('plantilla', { data: data });
@@ -1266,5 +1268,8 @@ router.route('/ordenes-hoy')
 	
 router.route('/api/orden/:numeroOrden')
 	.get(getDatosOrdenesApi);
+
+router.route('/recursos-humanos')
+	.get(isLoggedIn, getRecursosHumanos);
 
 module.exports = router; // 859

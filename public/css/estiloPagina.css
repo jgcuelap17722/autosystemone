@@ -43,11 +43,13 @@
 body {
   /*height: 100vh;*/
   /* background:rgba(191, 63, 63, 0.9);  */
-  background: url('../img/fondo.jpg');
+  /*background: url('../img/fondo.jpg');*/
   /*background: url('https://cdn.pixabay.com/photo/2018/10/06/13/31/red-3727877_960_720.jpg');*/
   /*background-repeat:no-repeat;*/
   /*background-size: cover;*/
   /*background-size: contain;*/
+  background: rgb(108,108,108);
+  background: radial-gradient(circle, rgba(108,108,108,0.989233193277311) 0%, rgba(1,50,67,1) 100%);
 }
 
 .jose {

@@ -1,0 +1,99 @@
+extends partials/messages.pug
+prepend head
+  link(href="lib/MDBootstrap 4.8.7/css/addons/datatables.min.css" rel="stylesheet")
+append area-librerias-scripts
+  script(type="text/javascript" src="lib/MDBootstrap 4.8.7/js/addons/datatables.min.js")    
+prepend area-scripts
+  script.
+    $(document).ready(function(){
+      const tabla = $('#dtBasicExample').DataTable({
+        "scrollX": true,
+        "order": [[ 6, "asc" ]],
+        "initComplete": function() {
+          $("#dtBasicExample").show();
+          $("#CargandoTabla").hide();
+          // alert( 'DataTables has finished its initialisation.' );
+        }
+      });
+    })
+append styles
+  style.
+    #dtBasicExample2 { display: none;}
+    .dtBasicExample {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    #dtBasicExample th, td {
+      white-space: nowrap;
+    }
+    table.dataTable thead .sorting:after,
+    table.dataTable thead .sorting:before,
+    table.dataTable thead .sorting_asc:after,
+    table.dataTable thead .sorting_asc:before,
+    table.dataTable thead .sorting_asc_disabled:after,
+    table.dataTable thead .sorting_asc_disabled:before,
+    table.dataTable thead .sorting_desc:after,
+    table.dataTable thead .sorting_desc:before,
+    table.dataTable thead .sorting_desc_disabled:after,
+    table.dataTable thead .sorting_desc_disabled:before {
+      bottom: .5em;
+    }
+block contenido
+  .container-fluid.px-0
+    .card
+      .card-header.bg-danger.text-white.py-2.border-bottom-0
+        .d-flex.bd-highlight
+          .mr-auto.bd-highlight
+            i#iconombre.fas.fa-history.text-white.mr-2
+            strong RECURSOS HUMANOS
+      .card-body
+        #CargandoTabla
+          .d-flex.justify-content-center
+            .spinner-border.text-danger(role='status')
+              span.sr-only Loading...
+        table#dtBasicExample.table.table-striped.row-border.hover.table-sm.responsive.nowrap.compact(cellspacing="0" width="100%")
+          thead
+            tr
+              th.th-sm NOMBRE
+              th.th-sm ROL
+              th.th-sm USERNAME
+              th.th-sm TELEFONO
+              th.th-sm DNI
+              th.th-sm EDAD
+              th.th-sm ESTADO
+              th.th-sm EMAIL
+              th.th-sm DIRECCIÓN
+          tbody
+            - var i = 0;
+            each val in data.recursosHumanos
+              tr
+                td
+                  .d-flex.justify-content-start
+                    .text-body #{data.recursosHumanos[i].nombre}
+                    .text-primary.ml-1 #{data.recursosHumanos[i].apellido_paterno}
+                    .text-primary.ml-1 #{data.recursosHumanos[i].apellido_materno}
+                td #{data.recursosHumanos[i].tipo_usuario}
+                td #{data.recursosHumanos[i].username}
+                td #{data.recursosHumanos[i].telefono}                              
+                td #{data.recursosHumanos[i].dni}                              
+                td #{data.recursosHumanos[i].edad}                              
+                td
+                  case data.recursosHumanos[i].estado
+                    when 1
+                      .text-primary ACTIVO
+                    when 0
+                      .text-danger INACTIVO
+                td #{data.recursosHumanos[i].email}
+                td #{data.recursosHumanos[i].direccion}
+              - i++
+          tfoot
+            tr
+              th NOMBRE
+              th ROL
+              th USERNAME
+              th TELEFONO
+              th DNI
+              th EDAD
+              th ESTADO
+              th EMAIL
+              th DIRECCIÓN

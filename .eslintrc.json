@@ -24,6 +24,7 @@
         "linebreak-style": "off",
         "comma-dangle": ["error", "never"],
         "global-require":"off",
+        "no-multi-assign":"off",
         /* "indent": ["error", "tab"], */
         "no-multi-spaces": [1, {
             "exceptions": {
